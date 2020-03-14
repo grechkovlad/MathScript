@@ -1,20 +1,18 @@
-module                  ->  "MODULE" ident ";" declarations BEGIN statementSequence "END" ident "."
+module                  ->  "MODULE" IDENT ";" declarations BEGIN statementSequence "END" IDENT "."
 
-ident                   ->  LETTER (LETTER|DIGIT)*
+identList               ->  IDENT ("," IDENT)*
 
-identList               ->  ident ("," ident)*
-
-declarations            ->  ("CONST" ident "=" expression ";" (ident "=" expression ";")*)?
-                            ("TYPE" ident "=" type ";" (ident "=" type ";")*)?
+declarations            ->  ("CONST" IDENT "=" expression ";" (IDENT "=" expression ";")*)?
+                            ("TYPE" IDENT "=" type ";" (IDENT "=" type ";")*)?
                             ("VAR" identList ":" type ";" (identList ":" type ";")*)?
                             (procedureDeclaration ";")*
                             (functionDeclaration ";")*
 
-statementSequence       ->  (statement;)*
+statementSequence       ->  (statement ";")*
 
 expression              ->  simpleExpression (("="|"#"|"<"|"<="|">"|">=")simpleExpression)?
 
-type                    ->  ident | arrayType | recordType
+type                    ->  IDENT | arrayType | recordType
 
 procedureDeclaration    ->  procedureHeading ";" subroutineBody
 
@@ -28,16 +26,16 @@ arrayType               ->  "ARRAY" expression "OF" type
 
 recordType              ->  "RECORD" (fieldList)* "END"
 
-procedureHeading        ->  "PROCEDURE" ident formalParameters
+procedureHeading        ->  "PROCEDURE" IDENT formalParameters
 
 subroutineBody          ->  ("VAR" identList ":" type ";" (identList ":" type ";")*)
-                            "BEGIN" statementSequence "END" ident
+                            "BEGIN" statementSequence "END" IDENT
 
-functionHeading         ->  "FUNCTION"  ident formalParameters ":" type
+functionHeading         ->  "FUNCTION"  IDENT formalParameters ":" type
 
-assignment              ->  ident selector ":=" expression
+assignment              ->  IDENT selector ":=" expression
 
-call                    ->  ident actualParameters
+call                    ->  IDENT actualParameters
 
 ifStatement             ->  "IF" expression "THEN" statementSequence ("ELSE" statementSequence) "END"
 
@@ -47,11 +45,9 @@ returnStatement         ->  "RETURN" expression?
 
 term                    ->  factor (("*"|"DIV"|"MOD"|"&")factor)*
 
-factor                  ->  ident selector | integer | "(" expression ")" | "~" factor
+factor                  ->  IDENT selector | INTEGER | "(" expression ")" | "~" factor
 
-selector                ->  ("." ident | "[" expression "]")*
-
-integer                 ->  digit (digit)*
+selector                ->  ("." IDENT | "[" expression "]")*
 
 fieldList               ->  identList ":" type
 

@@ -1,0 +1,58 @@
+module                  ->  "MODULE" ident ";" declarations BEGIN statementSequence "END" ident "."
+
+ident                   ->  LETTER (LETTER|DIGIT)*
+
+identList               ->  ident ("," ident)*
+
+declarations            ->  ("CONST" ident "=" expression ";" (ident "=" expression ";")*)?
+                            ("TYPE" ident "=" type ";" (ident "=" type ";")*)?
+                            ("VAR" identList ":" type ";" (identList ":" type ";")*)?
+                            (procedureDeclaration ";")*
+                            (functionDeclaration ";")*
+
+statementSequence       ->  (statement;)*
+
+expression              ->  simpleExpression (("="|"#"|"<"|"<="|">"|">=")simpleExpression)?
+
+type                    ->  ident | arrayType | recordType
+
+procedureDeclaration    ->  procedureHeading ";" subroutineBody
+
+functionDeclaration     ->  functionHeading ';' subroutineBody
+
+statement               ->  assignment|call|ifStatement|whileStatement|returnStatement
+
+simpleExpression        ->  ("+"|"-") term (("+"|"-"|"OR")term)*
+
+arrayType               ->  "ARRAY" expression "OF" type
+
+recordType              ->  "RECORD" (fieldList)* "END"
+
+procedureHeading        ->  "PROCEDURE" ident formalParameters
+
+subroutineBody          ->  ("VAR" identList ":" type ";" (identList ":" type ";")*)
+                            "BEGIN" statementSequence "END" ident
+
+functionHeading         ->  "FUNCTION"  ident formalParameters ":" type
+
+assignment              ->  ident selector ":=" expression
+
+call                    ->  ident actualParameters
+
+ifStatement             ->  "IF" expression "THEN" statementSequence ("ELSE" statementSequence) "END"
+
+whileStatement          ->  "WHILE" expression  "DO" statementSequence "END"
+
+returnStatement         ->  "RETURN" expression?
+
+term                    ->  factor (("*"|"DIV"|"MOD"|"&")factor)*
+
+factor                  ->  ident selector | integer | "(" expression ")" | "~" factor
+
+selector                ->  ("." ident | "[" expression "]")*
+
+integer                 ->  digit (digit)*
+
+fieldList               ->  identList ":" type
+
+formalParameters        ->  "(" ("VAR" identList ":" type ";" (identList ":" type ";")*)? ")"

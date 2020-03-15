@@ -3,52 +3,69 @@ from graphviz import Digraph
 from grammar import module
 
 
-def _to_graphviz(v, graph, storage):
+class Counter:
+    def __init__(self, _from):
+        self.val = _from
+
+    def inc(self):
+        self.val = self.val + 1
+        return str(self.val - 1)
+
+
+def _to_graphviz(v, graph, storage, counter):
     if isinstance(v, Terminal):
-        storage[v] = str(len(storage))
-        graph.node(storage[v], label=v.name, _attributes={"shape": "square", "fillcolor": "red", "style": "filled"})
-        return storage[v]
+        v_id = counter.inc()
+        graph.node(v_id, label=v.name, _attributes={"shape": "square", "fillcolor": "pink", "style": "filled"})
+        return v_id
     if isinstance(v, NonTerminal):
         if v in storage:
             return storage[v]
-        storage[v] = str(len(storage))
-        graph.node(storage[v], label=v.name, _attributes={"shape": "square", "fillcolor": "green", "style": "filled"})
-        rule_node_id = _to_graphviz(v.rule, graph, storage)
+        storage[v] = counter.inc()
+        graph.node(storage[v], label=v.name,
+                   _attributes={"shape": "square", "fillcolor": "green", "style": "filled"})
+        rule_node_id = _to_graphviz(v.rule, graph, storage, counter)
         graph.edge(storage[v], rule_node_id)
         return storage[v]
     else:
-        storage[v] = str(len(storage))
-        graph.node(storage[v], label=_get_regex_label(v))
+        v_id = counter.inc()
+        graph.node(v_id, label="", _attributes={"shape": _get_regex_shape(v)})
         if isinstance(v, Or) or isinstance(v, Concat):
-            children = [_to_graphviz(child, graph, storage) for child in v.list]
+            children = [_to_graphviz(child, graph, storage, counter) for child in v.list]
             for index, child in enumerate(children):
                 if isinstance(v, Or):
-                    graph.edge(storage[v], child)
+                    graph.edge(v_id, child)
                 else:
-                    graph.edge(storage[v], child, label=str(index))
-            return storage[v]
+                    graph.edge(v_id, child, label=str(index))
+            return v_id
         if isinstance(v, Question) or isinstance(v, Star):
-            child = _to_graphviz(v.expr, graph, storage)
-            graph.edge(child, storage[v])
-            return storage[v]
+            child = _to_graphviz(v.expr, graph, storage, counter)
+            graph.edge(v_id, child)
+            return v_id
         raise NotImplementedError("Unknown node type")
 
 
-def _get_regex_label(v):
+def _get_regex_shape(v):
     if isinstance(v, Or):
-        return "Or"
+        return "diamond"
     if isinstance(v, Concat):
-        return "Concat"
+        return "egg"
     if isinstance(v, Star):
-        return "*"
+        return "star"
     if isinstance(v, Question):
-        return "?"
+        return "invtriangle"
 
 
 def visualize(root, file):
     graph = Digraph()
-    _to_graphviz(root, graph, dict())
-    graph.render("file", format="png")
+    graph.node("0", label="kleenee star", _attributes={"shape": "star"})
+    graph.node("1", label="concatenation", _attributes={"shape": "egg"})
+    graph.node("2", label="alternative", _attributes={"shape": "diamond"})
+    graph.node("3", label="optional", _attributes={"shape": "invtriangle"})
+    graph.node("4", label="terminal", _attributes={"shape": "square", "fillcolor": "pink", "style": "filled"})
+    graph.node("5", label="nonterminal",
+               _attributes={"shape": "square", "fillcolor": "green", "style": "filled"})
+    _to_graphviz(root, graph, dict(), Counter(6))
+    graph.render(file, format="png")
 
 
-visualize(module, "graph")
+visualize(module, "grammar_visualization")

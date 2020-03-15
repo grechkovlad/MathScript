@@ -9,12 +9,12 @@ class Concat:
 
 
 class Star:
-    def __init(self, expr):
+    def __init__(self, expr):
         self.expr = expr
 
 
 class Question:
-    def __init(self, expr):
+    def __init__(self, expr):
         self.expr = expr
 
 

@@ -1,11 +1,11 @@
 class Or:
     def __init__(self, list):
-        self._list = list
+        self.list = list
 
 
 class Concat:
     def __init__(self, list):
-        self._list = list
+        self.list = list
 
 
 class Star:
@@ -23,8 +23,8 @@ class Terminal:
 
 
 class Literal(Terminal):
-    def __init__(self, str):
-        self._str = str
+    def __init__(self, name):
+        self.name = name
 
 
 class NonTerminal:
@@ -33,6 +33,6 @@ class NonTerminal:
         self.rule = None
 
 
-class NamedTerminal():
+class NamedTerminal(Terminal):
     def __init__(self, name):
         self.name = name

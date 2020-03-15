@@ -5,8 +5,7 @@ identList               ->  IDENT ("," IDENT)*
 declarations            ->  ("CONST" IDENT "=" expression ";" (IDENT "=" expression ";")*)?
                             ("TYPE" IDENT "=" type ";" (IDENT "=" type ";")*)?
                             ("VAR" identList ":" type ";" (identList ":" type ";")*)?
-                            (procedureDeclaration ";")*
-                            (functionDeclaration ";")*
+                            ((procedureDeclaration | functionDeclaration) ";")*
 
 statementSequence       ->  (statement ";")*
 
@@ -28,7 +27,7 @@ recordType              ->  "RECORD" (fieldList)* "END"
 
 procedureHeading        ->  "PROCEDURE" IDENT formalParameters
 
-subroutineBody          ->  ("VAR" identList ":" type ";" (identList ":" type ";")*)
+subroutineBody          ->  ("VAR" identList ":" type ";" (identList ":" type ";")*)?
                             "BEGIN" statementSequence "END" IDENT
 
 functionHeading         ->  "FUNCTION"  IDENT formalParameters ":" type
@@ -37,7 +36,7 @@ assignment              ->  IDENT selector ":=" expression
 
 call                    ->  IDENT actualParameters
 
-ifStatement             ->  "IF" expression "THEN" statementSequence ("ELSE" statementSequence) "END"
+ifStatement             ->  "IF" expression "THEN" statementSequence ("ELSE" statementSequence)? "END"
 
 whileStatement          ->  "WHILE" expression  "DO" statementSequence "END"
 
@@ -52,3 +51,5 @@ selector                ->  ("." IDENT | "[" expression "]")*
 fieldList               ->  identList ":" type
 
 formalParameters        ->  "(" ("VAR" identList ":" type ";" (identList ":" type ";")*)? ")"
+
+actualParameters        -> "("(expression ("," expression)*)?")"

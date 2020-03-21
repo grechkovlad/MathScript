@@ -66,6 +66,3 @@ def visualize(root, file):
                _attributes={"shape": "square", "fillcolor": "green", "style": "filled"})
     _to_graphviz(root, graph, dict(), Counter(6))
     graph.render(file, format="png")
-
-
-visualize(module, "grammar_visualization")

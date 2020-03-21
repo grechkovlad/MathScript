@@ -1,4 +1,4 @@
-module                  ->  "MODULE" IDENT ";" declarations BEGIN statementSequence "END" IDENT "."
+module                  ->  "MODULE" IDENT ";" declarations "BEGIN" statementSequence "END" IDENT "."
 
 identList               ->  IDENT ("," IDENT)*
 

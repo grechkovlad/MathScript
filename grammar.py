@@ -1,7 +1,7 @@
 from cfg_structures import *
 
-IDENT = NamedTerminal("IDENT")
-INTEGER = NamedTerminal("INTEGER")
+IDENT = Ident()
+INTEGER = Integer()
 
 MODULE = Literal("MODULE")
 SEMICOLON = Literal(";")

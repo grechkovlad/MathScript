@@ -1,6 +1,4 @@
-from cfg_structures import *
 from grammar import *
-from grammar_visualization import visualize
 from fractions import Fraction as frac
 
 from random import randint, seed, choice

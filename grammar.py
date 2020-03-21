@@ -1,7 +1,7 @@
-from cfg_structures import *
+from grammar_nodes import *
 
-IDENT = Ident()
-INTEGER = Integer()
+IDENT = NamedTerminal("IDENT")
+INTEGER = NamedTerminal("INTEGER")
 
 MODULE = Literal("MODULE")
 SEMICOLON = Literal(";")

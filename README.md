@@ -1,2 +1,2 @@
-# Oberon-0 to JVM
-Compiling Oberon-0 to JVM bytecode
+# MathScript to JVM
+Compiling MathScript to JVM bytecode

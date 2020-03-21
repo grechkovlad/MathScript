@@ -36,13 +36,3 @@ class NonTerminal:
 class NamedTerminal(Terminal):
     def __init__(self, name):
         self.name = name
-
-
-class Ident(NamedTerminal):
-    def __init__(self):
-        self.name = "IDENT"
-
-
-class Integer(NamedTerminal):
-    def __init__(self):
-        self.name = "INTEGER"

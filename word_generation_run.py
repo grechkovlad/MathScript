@@ -1,4 +1,4 @@
-from words_generator import generate_random_word
-from mathscript_grammar import *
+from generator_utils.words_generator import generate_random_word
+from grammar.mathscript_grammar import *
 
-print(" ".join(map(str, generate_random_word(subroutineCall, 0))))
+print(" ".join(map(str, generate_random_word(script, 0))))

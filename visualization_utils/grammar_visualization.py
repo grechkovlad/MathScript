@@ -1,6 +1,6 @@
 from graphviz import Digraph
 
-from grammar_nodes import *
+from grammar.grammar_nodes import *
 
 
 class Counter:

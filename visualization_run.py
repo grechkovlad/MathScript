@@ -1,4 +1,4 @@
-from grammar_visualization import visualize
-from mathscript_grammar import script
+from visualization_utils.grammar_visualization import visualize
+from grammar.mathscript_grammar import script
 
-visualize(script, "mathscript_grammar")
+visualize(script, "visualizations/mathscript_grammar")

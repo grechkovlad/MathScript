@@ -1,8 +1,7 @@
 from random import randint, choice
+from grammar.mathscript_grammar import *
 
-from grammar import *
-
-START_MAX = 5
+START_MAX = 3
 IDENT_LEN_MAX = 5
 MAX_DEPTH = 20
 

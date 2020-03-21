@@ -1,4 +1,4 @@
-from grammar_nodes import *
+from grammar.grammar_nodes import *
 
 FUNCTION = Literal("function")
 PROCEDURE = Literal("procedure")
@@ -46,7 +46,7 @@ intTerm = NonTerminal("intTerm")
 intFactor = NonTerminal("intFactor")
 boolTerm = NonTerminal("boolTerm")
 boolFactor = NonTerminal("boolFactor")
-comparison = NonTerminal("relation")
+comparison = NonTerminal("comparison")
 
 script.rule = Star(Or([subroutineDecl, statement]))
 subroutineDecl.rule = Concat([subroutineHeading, block])

@@ -159,7 +159,7 @@ digraph {
 	90 [label="!" fillcolor=pink shape=square style=filled]
 	89 -> 90
 	91 [label="" shape=diamond]
-	92 [label=relation fillcolor=green shape=square style=filled]
+	92 [label=comparison fillcolor=green shape=square style=filled]
 	93 [label="" shape=egg]
 	94 [label="" shape=diamond]
 	95 [label="<" fillcolor=pink shape=square style=filled]

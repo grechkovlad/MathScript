@@ -1,2 +1,2 @@
-# MathScript to JVM
-Compiling MathScript to JVM bytecode
+# MathScript to bytecode
+Compiling MathScript to bytecode

@@ -1,6 +1,6 @@
 import unittest
 
-from parser.Tokenizer import Tokenizer, Token, TokenizerException
+from parsing.Tokenizer import Tokenizer, Token, TokenizerException
 
 
 class TestBases:

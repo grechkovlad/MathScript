@@ -22,19 +22,19 @@ class Tokenizer:
         if pos >= len(self._text):
             self.current = Token("EOF", '\0', self._line, self._column, self._column)
             return
-        if self._text[pos] in ['(', ')', '{', '}', '!', '|', '&', '+', '-', ',', ';']:
+        if self._text[pos] in ['(', ')', '{', '}', '!', '|', '&', '+', '-', '*', ',', ';']:
             self.current = Token(self._text[pos], self._text[pos], self._line, self._column, self._column)
             return
         if self._text[pos] in ['<', '>', '=']:
             if self._char_equals(pos + 1, '='):
-                self.current = Token(self._text[pos: pos + 1], self._text[pos: pos + 1],
+                self.current = Token(self._text[pos: pos + 2], self._text[pos: pos + 2],
                                      self._line, self._column, self._column + 1)
                 self._pos += 1
                 self._column += 1
             else:
                 self.current = Token(self._text[pos], self._text[pos], self._line, self._column, self._column)
             return
-        word_match = re.match("[a-zA-Z]+", self._text[pos:])
+        word_match = re.match("[a-zA-Z][a-zA-Z0-9]*", self._text[pos:])
         if word_match:
             match_str = word_match.group(0)
             if match_str in ["if", "else", "function", "procedure", "return"]:
@@ -45,7 +45,7 @@ class Tokenizer:
             self._pos += len(match_str) - 1
             self._column += len(match_str) - 1
             return
-        num_match = re.match("\d+", self._text[pos:])
+        num_match = re.match(r"\d+", self._text[pos:])
         if num_match:
             match_str = num_match.group(0)
             self.current = Token("INT", int(match_str), self._line, self._column, self._column + len(match_str) - 1)

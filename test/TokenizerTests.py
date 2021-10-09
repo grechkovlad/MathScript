@@ -137,5 +137,87 @@ class SimplestExceptionTest(TestBases.ExceptionTokenizingTestBase):
         return TokenizerException('#', 1, 3)
 
 
+class TabTest(TestBases.ExceptionTokenizingTestBase):
+    def _get_input(self):
+        return "{\treturn";
+
+    def _get_expected_tokens(self):
+        return [Token("{", "{", 1, 1, 1)]
+
+    def _get_expected_exception(self):
+        return TokenizerException('\t', 1, 2)
+
+
+class KeywordTest(TestBases.SuccessfulTokenizingTestBase):
+    def _get_input(self):
+        return "if els elseif else"
+
+    def _get_expected(self):
+        return [Token("if", "if", 1, 1, 2),
+                Token("IDENT", "els", 1, 4, 6),
+                Token("IDENT", "elseif", 1, 8, 13),
+                Token("else", "else", 1, 15, 18)]
+
+
+class ComparisonTest(TestBases.SuccessfulTokenizingTestBase):
+    def _get_input(self):
+        return "a < <= = == === ==== >= >"
+
+    def _get_expected(self):
+        return [Token("IDENT", "a", 1, 1, 1),
+                Token("<", "<", 1, 3, 3),
+                Token("<=", "<=", 1, 5, 6),
+                Token("=", "=", 1, 8, 8),
+                Token("==", "==", 1, 10, 11),
+                Token("==", "==", 1, 13, 14),
+                Token("=", "=", 1, 15, 15),
+                Token("==", "==", 1, 17, 18),
+                Token("==", "==", 1, 19, 20),
+                Token(">=", ">=", 1, 22, 23),
+                Token(">", ">", 1, 25, 25)]
+
+
+class CallTest(TestBases.SuccessfulTokenizingTestBase):
+    def _get_input(self):
+        return "Foo(a, caBa+ d, -3*2, 0)"
+
+    def _get_expected(self):
+        return [Token("IDENT", "Foo", 1, 1, 3),
+                Token("(", "(", 1, 4, 4),
+                Token("IDENT", "a", 1, 5, 5),
+                Token(",", ",", 1, 6, 6),
+                Token("IDENT", "caBa", 1, 8, 11),
+                Token("+", "+", 1, 12, 12),
+                Token("IDENT", "d", 1, 14, 14),
+                Token(",", ",", 1, 15, 15),
+                Token("-", "-", 1, 17, 17),
+                Token("INT", 3, 1, 18, 18),
+                Token("*", "*", 1, 19, 19),
+                Token("INT", 2, 1, 20, 20),
+                Token(",", ",", 1, 21, 21),
+                Token("INT", 0, 1, 23, 23),
+                Token(")", ")", 1, 24, 24)]
+
+
+class IntsTest(TestBases.SuccessfulTokenizingTestBase):
+    def _get_input(self):
+        return "1 10 001 -03 - 2 1x x1 --3"
+
+    def _get_expected(self):
+        return [Token("INT", 1, 1, 1, 1),
+                Token("INT", 10, 1, 3, 4),
+                Token("INT", 1, 1, 6, 8),
+                Token("-", "-", 1, 10, 10),
+                Token("INT", 3, 1, 11, 12),
+                Token("-", "-", 1, 14, 14),
+                Token("INT", 2, 1, 16, 16),
+                Token("INT", 1, 1, 18, 18),
+                Token("IDENT", "x", 1, 19, 19),
+                Token("IDENT", "x1", 1, 21, 22),
+                Token("-", "-", 1, 24, 24),
+                Token("-", "-", 1, 25, 25),
+                Token("INT", 3, 1, 26, 26)]
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -23,6 +23,8 @@ class TestBases:
             self.assertEqual(tokenizer.current,
                              Token("EOF", "\0", last_token.line, last_token.column_end + 1,
                                    last_token.column_end + 1))
+            with self.assertRaises(EOFError):
+                tokenizer.advance()
 
     class ExceptionTokenizingTestBase(unittest.TestCase):
         def _get_input(self):
@@ -32,7 +34,7 @@ class TestBases:
             raise NotImplementedError("Must define expected tokens in derived test")
 
         def _get_expected_exception(self):
-            raise NotImplementedError("Must define expected tokens in derived test")
+            raise NotImplementedError("Must define expected exception in derived test")
 
         def test_tokenization(self):
             tokenizer = Tokenizer(self._get_input())

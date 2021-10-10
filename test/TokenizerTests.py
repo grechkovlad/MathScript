@@ -1,6 +1,6 @@
 import unittest
 
-from parsing.Tokenizer import Tokenizer, Token, TokenizerException
+from parsing.Tokenizer import Tokenizer, Token, UnexpectedCharException, IllegalRollbackException
 
 
 class TestBases:
@@ -13,14 +13,14 @@ class TestBases:
 
         def test_tokenization(self):
             tokenizer = Tokenizer(self._get_input())
-            self.assertEqual(tokenizer.current, Token("SOF", None, 1, 0, 0))
-            last_token = tokenizer.current
+            self.assertEqual(tokenizer.current(), Token("SOF", None, 1, 0, 0))
+            last_token = tokenizer.current()
             for expected_token in self._get_expected():
                 tokenizer.advance()
-                self.assertEqual(tokenizer.current, expected_token)
-                last_token = tokenizer.current
+                self.assertEqual(tokenizer.current(), expected_token)
+                last_token = tokenizer.current()
             tokenizer.advance()
-            self.assertEqual(tokenizer.current,
+            self.assertEqual(tokenizer.current(),
                              Token("EOF", "\0", last_token.line, last_token.column_end + 1,
                                    last_token.column_end + 1))
             with self.assertRaises(EOFError):
@@ -38,11 +38,11 @@ class TestBases:
 
         def test_tokenization(self):
             tokenizer = Tokenizer(self._get_input())
-            self.assertEqual(tokenizer.current, Token("SOF", None, 1, 0, 0))
+            self.assertEqual(tokenizer.current(), Token("SOF", None, 1, 0, 0))
             for expected_token in self._get_expected_tokens():
                 tokenizer.advance()
-                self.assertEqual(tokenizer.current, expected_token)
-            with self.assertRaises(TokenizerException) as cm:
+                self.assertEqual(tokenizer.current(), expected_token)
+            with self.assertRaises(UnexpectedCharException) as cm:
                 tokenizer.advance()
             self.assertEqual(self._get_expected_exception(), cm.exception)
 
@@ -136,7 +136,7 @@ class SimplestExceptionTest(TestBases.ExceptionTokenizingTestBase):
         return [Token("!", "!", 1, 1, 1)]
 
     def _get_expected_exception(self):
-        return TokenizerException('#', 1, 3)
+        return UnexpectedCharException('#', 1, 3)
 
 
 class TabTest(TestBases.ExceptionTokenizingTestBase):
@@ -147,7 +147,7 @@ class TabTest(TestBases.ExceptionTokenizingTestBase):
         return [Token("{", "{", 1, 1, 1)]
 
     def _get_expected_exception(self):
-        return TokenizerException('\t', 1, 2)
+        return UnexpectedCharException('\t', 1, 2)
 
 
 class KeywordTest(TestBases.SuccessfulTokenizingTestBase):
@@ -219,6 +219,75 @@ class IntsTest(TestBases.SuccessfulTokenizingTestBase):
                 Token("-", "-", 1, 24, 24),
                 Token("-", "-", 1, 25, 25),
                 Token("INT", 3, 1, 26, 26)]
+
+
+class SimplestRollbackTest(unittest.TestCase):
+    def test_tokenization(self):
+        tokenizer = Tokenizer("if\nelse\n\n0 -10")
+        expected_tokens = [Token("SOF", None, 1, 0, 0),
+                           Token("if", "if", 1, 1, 2),
+                           Token("else", "else", 2, 1, 4),
+                           Token("INT", 0, 4, 1, 1),
+                           Token("-", "-", 4, 3, 3),
+                           Token("INT", 10, 4, 4, 5),
+                           Token("EOF", "\0", 4, 6, 6)]
+        self.assertEqual(tokenizer.current(), expected_tokens[0])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[1])
+        tokenizer.rollback()
+        self.assertEqual(tokenizer.current(), expected_tokens[0])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[1])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[2])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[3])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[4])
+        tokenizer.rollback()
+        self.assertEqual(tokenizer.current(), expected_tokens[3])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[4])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[5])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[6])
+        tokenizer.rollback()
+        self.assertEqual(tokenizer.current(), expected_tokens[5])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[6])
+        with self.assertRaises(EOFError) as cm:
+            tokenizer.advance()
+
+
+class SimplestIllegalRollbackTest(unittest.TestCase):
+    def test_tokenization(self):
+        tokenizer = Tokenizer("if else")
+        with self.assertRaises(IllegalRollbackException):
+            tokenizer.rollback()
+
+
+class IllegalRollbackTest(unittest.TestCase):
+    def test_tokenization(self):
+        tokenizer = Tokenizer("-1 if 3")
+        expected_tokens = [Token("SOF", None, 1, 0, 0),
+                           Token("-", "-", 1, 1, 1),
+                           Token("INT", 1, 1, 2, 2),
+                           Token("if", "if", 1, 4, 5)]
+        self.assertEqual(tokenizer.current(), expected_tokens[0])
+        tokenizer.advance()
+        tokenizer.rollback()
+        self.assertEqual(tokenizer.current(), expected_tokens[0])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[1])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[2])
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current(), expected_tokens[3])
+        tokenizer.rollback()
+        self.assertEqual(tokenizer.current(), expected_tokens[2])
+        with self.assertRaises(IllegalRollbackException):
+            tokenizer.rollback()
 
 
 if __name__ == '__main__':

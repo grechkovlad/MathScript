@@ -67,3 +67,22 @@ class SimpleExpressionTestTwo(TestBases.SuccessfulParsingTestBase):
                                                BinaryOperation(BinaryOperatorKind.MUL,
                                                                3,
                                                                BinaryOperation(BinaryOperatorKind.MINUS, "x", "y"))))
+
+
+class SimpleExpressionTestThree(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "x>=3&3*y<=0|z==x+y"
+
+    def _get_rule(self):
+        return parse_a
+
+    def _get_expected(self):
+        return BinaryOperation(BinaryOperatorKind.OR,
+                               BinaryOperation(BinaryOperatorKind.AND,
+                                               BinaryOperation(BinaryOperatorKind.GEQ, "x", 3),
+                                               BinaryOperation(BinaryOperatorKind.LEQ,
+                                                               BinaryOperation(BinaryOperatorKind.MUL, 3, "y"),
+                                                               0)),
+                               BinaryOperation(BinaryOperatorKind.EQ,
+                                               "z",
+                                               BinaryOperation(BinaryOperatorKind.PLUS, "x", "y")))

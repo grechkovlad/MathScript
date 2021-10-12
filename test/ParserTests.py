@@ -86,3 +86,35 @@ class SimpleExpressionTestThree(TestBases.SuccessfulParsingTestBase):
                                BinaryOperation(BinaryOperatorKind.EQ,
                                                "z",
                                                BinaryOperation(BinaryOperatorKind.PLUS, "x", "y")))
+
+
+class SimplestCallExpressionTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "f(x, y)"
+
+    def _get_rule(self):
+        return parse_a
+
+    def _get_expected(self):
+        return Call("f", ["x", "y"])
+
+
+class ComplexExpressionTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "f(g(x,y),z)<=t()+1|-t(-r())<=0"
+
+    def _get_rule(self):
+        return parse_a
+
+    def _get_expected(self):
+        return BinaryOperation(BinaryOperatorKind.OR,
+                               BinaryOperation(BinaryOperatorKind.LEQ,
+                                               Call("f", [Call("g", ["x", "y"])]),
+                                               BinaryOperation(BinaryOperatorKind.PLUS,
+                                                               Call("t", []),
+                                                               1)),
+                               BinaryOperation(BinaryOperatorKind.LEQ,
+                                               UnaryOperation(UnaryOperatorKind.MINUS,
+                                                              Call("t", [UnaryOperation(UnaryOperatorKind.MINUS,
+                                                                                        Call("r", []))])),
+                                               0))

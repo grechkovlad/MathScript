@@ -30,6 +30,12 @@ def parse_parameters(tokenizer):
     return params
 
 
+def parse_call_statement(tokenizer):
+    call = parse_call(tokenizer)
+    _eat_token(tokenizer, ";")
+    return CallStatement(call)
+
+
 def parse_statement(tokenizer):
     match tokenizer.current().type:
         case "return":
@@ -41,7 +47,7 @@ def parse_statement(tokenizer):
             match tokenizer.current().type:
                 case "(":
                     tokenizer.rollback()
-                    return parse_call(tokenizer)
+                    return parse_call_statement(tokenizer)
                 case "=":
                     tokenizer.rollback()
                     return parse_assign(tokenizer)
@@ -77,7 +83,10 @@ def parse_procedure(tokenizer: Tokenizer):
 
 
 def parse_return(tokenizer: Tokenizer):
-    raise NotImplementedError()
+    _eat_token(tokenizer, "return")
+    if tokenizer.current().type == ";":
+        return ReturnStatement()
+    return ReturnStatement(parse_a(tokenizer))
 
 
 def parse_f(tokenizer):
@@ -100,8 +109,12 @@ def parse_f(tokenizer):
             f = tokenizer.current().value
             tokenizer.advance()
         case "IDENT":
-            f = tokenizer.current().value
-            tokenizer.advance()
+            name = _eat_token(tokenizer, "IDENT").value
+            if tokenizer.current().type == "(":
+                tokenizer.rollback()
+                f = parse_call(tokenizer)
+            else:
+                f = name
         case _:
             raise ParserException(tokenizer.current(), ["(", "IDENT", "INT"])
     if unary_operator is None:
@@ -176,11 +189,25 @@ def parse_if(tokenizer: Tokenizer):
 
 
 def parse_call(tokenizer):
-    raise NotImplementedError()
+    subroutine = _eat_token(tokenizer, "IDENT").value
+    _eat_token(tokenizer, "(")
+    if tokenizer.current().type == ")":
+        tokenizer.advance()
+        return Call(subroutine, [])
+    arguments = [parse_a(tokenizer)]
+    while tokenizer.current().type != ")":
+        _eat_token(tokenizer, ",")
+        arguments.append(parse_a(tokenizer))
+    tokenizer.advance()
+    return Call(subroutine, arguments)
 
 
 def parse_assign(tokenizer):
-    raise NotImplementedError()
+    var = _eat_token(tokenizer, "IDENT").value
+    _eat_token(tokenizer, "=")
+    expr = parse_a(tokenizer)
+    _eat_token(tokenizer, ";")
+    return AssignStatements(var, expr)
 
 
 def parse_script(tokenizer: Tokenizer):

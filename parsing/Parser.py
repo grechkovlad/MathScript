@@ -21,6 +21,7 @@ def parse_parameters(tokenizer):
     params = []
     _eat_token(tokenizer, "(")
     if tokenizer.current().type == ")":
+        tokenizer.advance()
         return params
     params.append(_eat_token(tokenizer, "IDENT").value)
     while tokenizer.current().type != ")":
@@ -79,14 +80,17 @@ def parse_procedure(tokenizer: Tokenizer):
     name = _eat_token(tokenizer, "IDENT").value
     params = parse_parameters(tokenizer)
     body = parse_block(tokenizer)
-    return FunctionDecl(name, params, body)
+    return ProcedureDecl(name, params, body)
 
 
 def parse_return(tokenizer: Tokenizer):
     _eat_token(tokenizer, "return")
     if tokenizer.current().type == ";":
+        tokenizer.advance()
         return ReturnStatement()
-    return ReturnStatement(parse_expr(tokenizer))
+    expr = parse_expr(tokenizer)
+    _eat_token(tokenizer, ";")
+    return ReturnStatement(expr)
 
 
 def parse_f(tokenizer):
@@ -207,7 +211,7 @@ def parse_assign(tokenizer):
     _eat_token(tokenizer, "=")
     expr = parse_expr(tokenizer)
     _eat_token(tokenizer, ";")
-    return AssignStatements(var, expr)
+    return AssignStatement(var, expr)
 
 
 def parse_script(tokenizer: Tokenizer):

@@ -52,13 +52,13 @@ class ReturnStatement:
         raise NotImplementedError()
 
 
-class AssignStatements:
+class AssignStatement:
     def __init__(self, var, expr):
         self.var = var
         self.expr = expr
 
     def __eq__(self, other):
-        if isinstance(other, AssignStatements):
+        if isinstance(other, AssignStatement):
             return self.var == other.var and self.expr == self.expr
         raise NotImplementedError()
 
@@ -85,7 +85,7 @@ class CallStatement:
 
 
 class IfStatement:
-    def __init__(self, condition, then_block, else_block):
+    def __init__(self, condition, then_block, else_block = None):
         self.condition = condition
         self.then_block = then_block
         self.else_block = else_block

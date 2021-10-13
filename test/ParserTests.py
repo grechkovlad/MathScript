@@ -1,7 +1,7 @@
 import unittest
 
 from parsing.Tokenizer import Tokenizer
-from parsing.Parser import parse_expr
+from parsing.Parser import *
 from parsing.Ast import *
 
 
@@ -99,7 +99,7 @@ class SimplestCallExpressionTest(TestBases.SuccessfulParsingTestBase):
         return Call("f", ["x", "y"])
 
 
-class ComplexExpressionTest(TestBases.SuccessfulParsingTestBase):
+class ComplexExpressionParsingTest(TestBases.SuccessfulParsingTestBase):
     def _get_input(self):
         return "f(g(x,y),z)<=t()+1|-t(-r())<=0"
 
@@ -118,3 +118,154 @@ class ComplexExpressionTest(TestBases.SuccessfulParsingTestBase):
                                                               Call("t", [UnaryOperation(UnaryOperatorKind.MINUS,
                                                                                         Call("r", []))])),
                                                0))
+
+
+class SimplestAssignParsingTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "x = f(y);"
+
+    def _get_expected(self):
+        return AssignStatement("x", Call("f", ["y"]))
+
+    def _get_rule(self):
+        return parse_assign
+
+
+class TrivialParseParametersTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "()"
+
+    def _get_rule(self):
+        return parse_parameters
+
+    def _get_expected(self):
+        return []
+
+
+class SimpleParseParametersTestOne(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "(x)"
+
+    def _get_rule(self):
+        return parse_parameters
+
+    def _get_expected(self):
+        return ["x"]
+
+
+class SimpleParseParametersTestTwo(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return ("(x, z, ab)")
+
+    def _get_rule(self):
+        return parse_parameters
+
+    def _get_expected(self):
+        return ["x", "z", "ab"]
+
+
+class SimpleParseCallStatementTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "proc(f(g(x - 1)), y + 1, 2);"
+
+    def _get_rule(self):
+        return parse_call_statement
+
+    def _get_expected(self):
+        return CallStatement(Call("proc",
+                                  [Call("f",
+                                        [Call("g",
+                                              [BinaryOperation(BinaryOperatorKind.MINUS,
+                                                               "x",
+                                                               1)])]),
+                                   BinaryOperation(BinaryOperatorKind.PLUS,
+                                                   "y",
+                                                   1),
+                                   2]))
+
+
+class SimplestParseReturnStatementTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "return;"
+
+    def _get_rule(self):
+        return parse_return
+
+    def _get_expected(self):
+        return ReturnStatement()
+
+
+class SimpleParseReturnStatementTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "return -x;"
+
+    def _get_rule(self):
+        return parse_return
+
+    def _get_expected(self):
+        return ReturnStatement(UnaryOperation(UnaryOperatorKind.MINUS, "x"))
+
+
+class SimpleParseIfStatementTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "if (x < 0) {return -x;}"
+
+    def _get_rule(self):
+        return parse_if
+
+    def _get_expected(self):
+        return IfStatement(BinaryOperation(BinaryOperatorKind.LESS, "x", 0),
+                           [ReturnStatement(UnaryOperation(UnaryOperatorKind.MINUS, "x"))])
+
+
+class SimpleParseIfElseStatementTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "if (z >= 0) {res = 1;} else {throw(z);}"
+
+    def _get_rule(self):
+        return parse_if
+
+    def _get_expected(self):
+        return IfStatement(BinaryOperation(BinaryOperatorKind.GEQ, "z", 0),
+                           [AssignStatement("res", 1)],
+                           [CallStatement(Call("throw", ["z"]))])
+
+
+class SimpleParseBlockTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "{x = 2; y = x; if (c < 0) {return y;}}"
+
+    def _get_rule(self):
+        return parse_block
+
+    def _get_expected(self):
+        return [AssignStatement("x", 2),
+                AssignStatement("y", "x"),
+                IfStatement(BinaryOperation(BinaryOperatorKind.LESS, "c", 0),
+                            [ReturnStatement("y")])]
+
+
+class SimpleParseFunctionTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "function foo() {return 42;}"
+
+    def _get_rule(self):
+        return parse_function
+
+    def _get_expected(self):
+        return FunctionDecl("foo",
+                            [],
+                            [ReturnStatement(42)])
+
+
+class SimpleParseProcedureTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "procedure doSomething(x, y) {z = x + y;}"
+
+    def _get_rule(self):
+        return parse_procedure
+
+    def _get_expected(self):
+        return ProcedureDecl("doSomething",
+                             ["x", "y"],
+                             [AssignStatement("z", BinaryOperation(BinaryOperatorKind.PLUS, "x", "y"))])

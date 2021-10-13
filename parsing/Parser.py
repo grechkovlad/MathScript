@@ -86,7 +86,7 @@ def parse_return(tokenizer: Tokenizer):
     _eat_token(tokenizer, "return")
     if tokenizer.current().type == ";":
         return ReturnStatement()
-    return ReturnStatement(parse_a(tokenizer))
+    return ReturnStatement(parse_expr(tokenizer))
 
 
 def parse_f(tokenizer):
@@ -103,7 +103,7 @@ def parse_f(tokenizer):
     match tokenizer.current().type:
         case "(":
             tokenizer.advance()
-            f = parse_a(tokenizer)
+            f = parse_expr(tokenizer)
             _eat_token(tokenizer, ")")
         case "INT":
             f = tokenizer.current().value
@@ -169,7 +169,7 @@ def parse_b(tokenizer):
     return b
 
 
-def parse_a(tokenizer):
+def parse_expr(tokenizer):
     a = parse_b(tokenizer)
     while tokenizer.current().type == "|":
         tokenizer.advance()
@@ -179,7 +179,7 @@ def parse_a(tokenizer):
 
 def parse_if(tokenizer: Tokenizer):
     _eat_token(tokenizer, "if")
-    condition = parse_a(tokenizer)
+    condition = parse_expr(tokenizer)
     then_block = parse_block(tokenizer)
     else_block = None
     if tokenizer.current().type == "else":
@@ -194,10 +194,10 @@ def parse_call(tokenizer):
     if tokenizer.current().type == ")":
         tokenizer.advance()
         return Call(subroutine, [])
-    arguments = [parse_a(tokenizer)]
+    arguments = [parse_expr(tokenizer)]
     while tokenizer.current().type != ")":
         _eat_token(tokenizer, ",")
-        arguments.append(parse_a(tokenizer))
+        arguments.append(parse_expr(tokenizer))
     tokenizer.advance()
     return Call(subroutine, arguments)
 
@@ -205,7 +205,7 @@ def parse_call(tokenizer):
 def parse_assign(tokenizer):
     var = _eat_token(tokenizer, "IDENT").value
     _eat_token(tokenizer, "=")
-    expr = parse_a(tokenizer)
+    expr = parse_expr(tokenizer)
     _eat_token(tokenizer, ";")
     return AssignStatements(var, expr)
 

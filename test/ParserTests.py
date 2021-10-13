@@ -1,7 +1,7 @@
 import unittest
 
 from parsing.Tokenizer import Tokenizer
-from parsing.Parser import parse_a
+from parsing.Parser import parse_expr
 from parsing.Ast import *
 
 
@@ -30,7 +30,7 @@ class SimplestExpressionTest(TestBases.SuccessfulParsingTestBase):
         return BinaryOperation(BinaryOperatorKind.MUL, 2, BinaryOperation(BinaryOperatorKind.PLUS, 1, 3))
 
     def _get_rule(self):
-        return parse_a
+        return parse_expr
 
 
 class SimpleExpressionTestOne(TestBases.SuccessfulParsingTestBase):
@@ -38,7 +38,7 @@ class SimpleExpressionTestOne(TestBases.SuccessfulParsingTestBase):
         return "(x + 3) < 3 & 3 * x | x < y"
 
     def _get_rule(self):
-        return parse_a
+        return parse_expr
 
     def _get_expected(self):
         return BinaryOperation(BinaryOperatorKind.OR,
@@ -55,7 +55,7 @@ class SimpleExpressionTestTwo(TestBases.SuccessfulParsingTestBase):
         return "!(x<y)&(-(a+3)>3*(x-y))"
 
     def _get_rule(self):
-        return parse_a
+        return parse_expr
 
     def _get_expected(self):
         return BinaryOperation(BinaryOperatorKind.AND,
@@ -74,7 +74,7 @@ class SimpleExpressionTestThree(TestBases.SuccessfulParsingTestBase):
         return "x>=3&3*y<=0|z==x+y"
 
     def _get_rule(self):
-        return parse_a
+        return parse_expr
 
     def _get_expected(self):
         return BinaryOperation(BinaryOperatorKind.OR,
@@ -93,7 +93,7 @@ class SimplestCallExpressionTest(TestBases.SuccessfulParsingTestBase):
         return "f(x, y)"
 
     def _get_rule(self):
-        return parse_a
+        return parse_expr
 
     def _get_expected(self):
         return Call("f", ["x", "y"])
@@ -104,7 +104,7 @@ class ComplexExpressionTest(TestBases.SuccessfulParsingTestBase):
         return "f(g(x,y),z)<=t()+1|-t(-r())<=0"
 
     def _get_rule(self):
-        return parse_a
+        return parse_expr
 
     def _get_expected(self):
         return BinaryOperation(BinaryOperatorKind.OR,

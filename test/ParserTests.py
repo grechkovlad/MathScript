@@ -1,8 +1,6 @@
 import unittest
 
-from parsing.Tokenizer import Tokenizer
 from parsing.Parser import *
-from parsing.Ast import *
 
 
 class TestBases:
@@ -155,7 +153,7 @@ class SimpleParseParametersTestOne(TestBases.SuccessfulParsingTestBase):
 
 class SimpleParseParametersTestTwo(TestBases.SuccessfulParsingTestBase):
     def _get_input(self):
-        return ("(x, z, ab)")
+        return "(x, z, ab)"
 
     def _get_rule(self):
         return parse_parameters
@@ -269,3 +267,40 @@ class SimpleParseProcedureTest(TestBases.SuccessfulParsingTestBase):
         return ProcedureDecl("doSomething",
                              ["x", "y"],
                              [AssignStatement("z", BinaryOperation(BinaryOperatorKind.PLUS, "x", "y"))])
+
+
+class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        with open('resources/fact7.ms') as file:
+            return file.read()
+
+    def _get_rule(self):
+        return parse_script
+
+    def _get_expected(self):
+        return Script([AssignStatement("n", 0),
+                       FunctionDecl("getThree", [], [ReturnStatement(3)]),
+                       ProcedureDecl("initNSix", [], [AssignStatement("n", BinaryOperation(BinaryOperatorKind.MINUS,
+                                                                                           BinaryOperation(
+                                                                                               BinaryOperatorKind.MUL,
+                                                                                               Call("getThree", []),
+                                                                                               2),
+                                                                                           1))]),
+                       FunctionDecl("fact", ["n"], [IfStatement(BinaryOperation(BinaryOperatorKind.GEQ,
+                                                                                "n",
+                                                                                0),
+                                                                [IfStatement(BinaryOperation(BinaryOperatorKind.EQ,
+                                                                                             "n",
+                                                                                             0),
+                                                                             [ReturnStatement(1)]),
+                                                                 ReturnStatement(BinaryOperation(BinaryOperatorKind.MUL,
+                                                                                                 "n",
+                                                                                                 Call("fact", [
+                                                                                                     BinaryOperation(
+                                                                                                         BinaryOperatorKind.MINUS,
+                                                                                                         "n",
+                                                                                                         1)])))],
+                                                                [ReturnStatement(
+                                                                    UnaryOperation(UnaryOperatorKind.MINUS, 1))])]),
+                       CallStatement(Call("initNSix", [])),
+                       ReturnStatement(Call("fact", ["n"]))])

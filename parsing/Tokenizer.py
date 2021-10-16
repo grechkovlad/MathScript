@@ -74,12 +74,15 @@ class Tokenizer:
         return pos < len(self._text) and self._text[pos] == c
 
     def _eat_whitespaces(self):
-        while self._text_pos < len(self._text) and (self._text[self._text_pos] in [' ', '\n']):
-            if self._text[self._text_pos] == ' ':
-                self._column += 1
-            else:
-                self._line += 1
-                self._column = 1
+        while self._text_pos < len(self._text) and (self._text[self._text_pos] in [' ', '\n', '\t']):
+            match self._text[self._text_pos]:
+                case ' ':
+                    self._column += 1
+                case '\n':
+                    self._line += 1
+                    self._column = 1
+                case '\t':
+                    self._column += 4
             self._text_pos += 1
 
 

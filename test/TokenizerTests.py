@@ -139,15 +139,13 @@ class SimplestExceptionTest(TestBases.ExceptionTokenizingTestBase):
         return UnexpectedCharException('#', 1, 3)
 
 
-class TabTest(TestBases.ExceptionTokenizingTestBase):
+class TabTest(TestBases.SuccessfulTokenizingTestBase):
     def _get_input(self):
         return "{\treturn";
 
-    def _get_expected_tokens(self):
-        return [Token("{", "{", 1, 1, 1)]
-
-    def _get_expected_exception(self):
-        return UnexpectedCharException('\t', 1, 2)
+    def _get_expected(self):
+        return [Token("{", "{", 1, 1, 1),
+                Token("return", "return", 1, 6, 11)]
 
 
 class KeywordTest(TestBases.SuccessfulTokenizingTestBase):
@@ -288,6 +286,27 @@ class IllegalRollbackTest(unittest.TestCase):
         self.assertEqual(tokenizer.current(), expected_tokens[2])
         with self.assertRaises(IllegalRollbackException):
             tokenizer.rollback()
+
+
+class TabTestTwo(TestBases.SuccessfulTokenizingTestBase):
+    def _get_input(self):
+        return "if c\n\treturn 1"
+
+    def _get_expected(self):
+        return [Token("if", "if", 1, 1, 2),
+                Token("IDENT", "c", 1, 4, 4),
+                Token("return", "return", 2, 5, 10),
+                Token("INT", 1, 2, 12, 12)]
+
+
+class SimpleTabTest(TestBases.SuccessfulTokenizingTestBase):
+    def _get_input(self):
+        return "if\n\treturn\n\t\tx"
+
+    def _get_expected(self):
+        return [Token("if", "if", 1, 1, 2),
+                Token("return", "return", 2, 5, 10),
+                Token("IDENT", "x", 3, 9, 9)]
 
 
 if __name__ == '__main__':

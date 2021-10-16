@@ -5,7 +5,8 @@ from parsing.Ast import *
 class ParserException(Exception):
     def __init__(self, bad_token: Token, expected_types):
         super(ParserException, self).__init__("Unexpected token '%s' at %d:%d-%d. I was expecting %s" % (
-            bad_token.value, bad_token.line, bad_token.column_start, bad_token.column_end, " or".join(expected_types)))
+            bad_token.value, bad_token.line, bad_token.column_start, bad_token.column_end,
+            ", or ".join(map(lambda x: x if x in ["IDENT", "INT"] else "'%s'" % (x), expected_types))))
         pass
 
 
@@ -215,7 +216,6 @@ def parse_assign(tokenizer):
 
 
 def parse_script(tokenizer: Tokenizer):
-    tokenizer.advance()
     body = []
     while tokenizer.current().type != "EOF":
         if tokenizer.current().type == "function":

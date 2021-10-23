@@ -25,7 +25,13 @@ class SimplestExpressionTest(TestBases.SuccessfulParsingTestBase):
         return "2*(1+3)"
 
     def _get_expected(self):
-        return BinaryOperation(BinaryOperatorKind.MUL, 2, BinaryOperation(BinaryOperatorKind.PLUS, 1, 3))
+        return BinaryOperation(BinaryOperatorKind.MUL,
+                               Integer(2, Location(1, 1, 1, 1)),
+                               BinaryOperation(BinaryOperatorKind.PLUS,
+                                               Integer(1, Location(1, 4, 1, 4)),
+                                               Integer(3, Location(1, 6, 1, 6)),
+                                               Location(1, 3, 1, 7)),
+                               Location(1, 1, 1, 7))
 
     def _get_rule(self):
         return parse_expr
@@ -42,10 +48,22 @@ class SimpleExpressionTestOne(TestBases.SuccessfulParsingTestBase):
         return BinaryOperation(BinaryOperatorKind.OR,
                                BinaryOperation(BinaryOperatorKind.AND,
                                                BinaryOperation(BinaryOperatorKind.LESS,
-                                                               BinaryOperation(BinaryOperatorKind.PLUS, "x", 3),
-                                                               3),
-                                               BinaryOperation(BinaryOperatorKind.MUL, 3, "x")),
-                               BinaryOperation(BinaryOperatorKind.LESS, "x", "y"))
+                                                               BinaryOperation(BinaryOperatorKind.PLUS,
+                                                                               Identifier("x", Location(1, 2, 1, 2)),
+                                                                               Integer(3, Location(1, 6, 1, 6)),
+                                                                               Location(1, 1, 1, 7)),
+                                                               Integer(3, Location(1, 11, 1, 11)),
+                                                               Location(1, 1, 1, 11)),
+                                               BinaryOperation(BinaryOperatorKind.MUL,
+                                                               Integer(3, Location(1, 15, 1, 15)),
+                                                               Identifier("x", Location(1, 19, 1, 19)),
+                                                               Location(1, 15, 1, 19)),
+                                               Location(1, 1, 1, 19)),
+                               BinaryOperation(BinaryOperatorKind.LESS,
+                                               Identifier("x", Location(1, 23, 1, 23)),
+                                               Identifier("y", Location(1, 27, 1, 27)),
+                                               Location(1, 23, 1, 27)),
+                               Location(1, 1, 1, 27))
 
 
 class SimpleExpressionTestTwo(TestBases.SuccessfulParsingTestBase):
@@ -58,13 +76,29 @@ class SimpleExpressionTestTwo(TestBases.SuccessfulParsingTestBase):
     def _get_expected(self):
         return BinaryOperation(BinaryOperatorKind.AND,
                                UnaryOperation(UnaryOperatorKind.NOT,
-                                              BinaryOperation(BinaryOperatorKind.LESS, "x", "y")),
+                                              BinaryOperation(BinaryOperatorKind.LESS,
+                                                              Identifier("x", Location(1, 3, 1, 3)),
+                                                              Identifier("y", Location(1, 5, 1, 5)),
+                                                              Location(1, 2, 1, 6)),
+                                              Location(1, 1, 1, 6)),
                                BinaryOperation(BinaryOperatorKind.GREATER,
                                                UnaryOperation(UnaryOperatorKind.MINUS,
-                                                              BinaryOperation(BinaryOperatorKind.PLUS, "a", 3)),
+                                                              BinaryOperation(BinaryOperatorKind.PLUS,
+                                                                              Identifier("a", Location(1, 11, 1, 11)),
+                                                                              Integer(3, Location(1, 13, 1, 13)),
+                                                                              Location(1, 10, 1, 14)),
+
+                                                              Location(1, 9, 1, 14)),
                                                BinaryOperation(BinaryOperatorKind.MUL,
-                                                               3,
-                                                               BinaryOperation(BinaryOperatorKind.MINUS, "x", "y"))))
+                                                               Integer(3, Location(1, 16, 1, 16)),
+                                                               BinaryOperation(BinaryOperatorKind.MINUS,
+                                                                               Identifier("x", Location(1, 19, 1, 19)),
+                                                                               Identifier("y",
+                                                                                          Location(1, 21, 1, 21)),
+                                                                               Location(1, 18, 1, 22)),
+                                                               Location(1, 16, 1, 22)),
+                                               Location(1, 8, 1, 23)),
+                               Location(1, 1, 1, 23))
 
 
 class SimpleExpressionTestThree(TestBases.SuccessfulParsingTestBase):
@@ -77,13 +111,26 @@ class SimpleExpressionTestThree(TestBases.SuccessfulParsingTestBase):
     def _get_expected(self):
         return BinaryOperation(BinaryOperatorKind.OR,
                                BinaryOperation(BinaryOperatorKind.AND,
-                                               BinaryOperation(BinaryOperatorKind.GEQ, "x", 3),
+                                               BinaryOperation(BinaryOperatorKind.GEQ,
+                                                               Identifier("x", Location(1, 1, 1, 1)),
+                                                               Integer(3, Location(1, 4, 1, 4)),
+                                                               Location(1, 1, 1, 4)),
                                                BinaryOperation(BinaryOperatorKind.LEQ,
-                                                               BinaryOperation(BinaryOperatorKind.MUL, 3, "y"),
-                                                               0)),
+                                                               BinaryOperation(BinaryOperatorKind.MUL,
+                                                                               Integer(3, Location(1, 6, 1, 6)),
+                                                                               Identifier("y", Location(1, 8, 1, 8)),
+                                                                               Location(1, 6, 1, 8)),
+                                                               Integer(0, Location(1, 11, 1, 11)),
+                                                               Location(1, 6, 1, 11)),
+                                               Location(1, 1, 1, 11)),
                                BinaryOperation(BinaryOperatorKind.EQ,
-                                               "z",
-                                               BinaryOperation(BinaryOperatorKind.PLUS, "x", "y")))
+                                               Identifier("z", Location(1, 13, 1, 13)),
+                                               BinaryOperation(BinaryOperatorKind.PLUS,
+                                                               Identifier("x", Location(1, 16, 1, 16)),
+                                                               Identifier("y", Location(1, 18, 1, 18)),
+                                                               Location(1, 16, 1, 18)),
+                                               Location(1, 13, 1, 18)),
+                               Location(1, 1, 1, 18))
 
 
 class SimplestCallExpressionTest(TestBases.SuccessfulParsingTestBase):
@@ -94,7 +141,11 @@ class SimplestCallExpressionTest(TestBases.SuccessfulParsingTestBase):
         return parse_expr
 
     def _get_expected(self):
-        return Call("f", ["x", "y"])
+        return Call(Identifier("f", Location(1, 1, 1, 1)),
+                    ArgumentsList([Identifier("x", Location(1, 3, 1, 3)),
+                                   Identifier("y", Location(1, 6, 1, 6))],
+                                  Location(1, 2, 1, 7)),
+                    Location(1, 1, 1, 7))
 
 
 class ComplexExpressionParsingTest(TestBases.SuccessfulParsingTestBase):
@@ -107,15 +158,39 @@ class ComplexExpressionParsingTest(TestBases.SuccessfulParsingTestBase):
     def _get_expected(self):
         return BinaryOperation(BinaryOperatorKind.OR,
                                BinaryOperation(BinaryOperatorKind.LEQ,
-                                               Call("f", [Call("g", ["x", "y"])]),
+                                               Call(Identifier("f", Location(1, 1, 1, 1)),
+                                                    ArgumentsList([Call(Identifier("g", Location(1, 3, 1, 3)),
+                                                                        ArgumentsList([
+                                                                            Identifier("x", Location(1, 5, 1, 5)),
+                                                                            Identifier("y", Location(1, 7, 1, 7))
+                                                                        ], Location(1, 4, 1, 8)),
+                                                                        Location(1, 3, 1, 8)),
+                                                                   Identifier("z", Location(1, 10, 1, 10))],
+                                                                  Location(1, 2, 1, 11)),
+                                                    Location(1, 1, 1, 11)),
                                                BinaryOperation(BinaryOperatorKind.PLUS,
-                                                               Call("t", []),
-                                                               1)),
+                                                               Call(Identifier("t", Location(1, 14, 1, 14)),
+                                                                    ArgumentsList([], Location(1, 15, 1, 16)),
+                                                                    Location(1, 14, 1, 16)),
+                                                               Integer(1, Location(1, 18, 1, 18)),
+                                                               Location(1, 14, 1, 18)),
+                                               Location(1, 1, 1, 18)),
                                BinaryOperation(BinaryOperatorKind.LEQ,
                                                UnaryOperation(UnaryOperatorKind.MINUS,
-                                                              Call("t", [UnaryOperation(UnaryOperatorKind.MINUS,
-                                                                                        Call("r", []))])),
-                                               0))
+                                                              Call(Identifier("t", Location(1, 21, 1, 21)),
+                                                                   ArgumentsList([UnaryOperation(
+                                                                       UnaryOperatorKind.MINUS,
+                                                                       Call(Identifier("r", Location(1, 24, 1, 24)),
+                                                                            ArgumentsList([],
+                                                                                          Location(1, 25, 1, 26)),
+                                                                            Location(1, 24, 1, 26)),
+                                                                       Location(1, 23, 1, 26))],
+                                                                       Location(1, 22, 1, 27)),
+                                                                   Location(1, 21, 1, 27)),
+                                                              Location(1, 20, 1, 27)),
+                                               Integer(0, Location(1, 30, 1, 30)),
+                                               Location(1, 20, 1, 30)),
+                               Location(1, 1, 1, 30))
 
 
 class SimplestAssignParsingTest(TestBases.SuccessfulParsingTestBase):
@@ -123,7 +198,12 @@ class SimplestAssignParsingTest(TestBases.SuccessfulParsingTestBase):
         return "x = f(y);"
 
     def _get_expected(self):
-        return AssignStatement("x", Call("f", ["y"]))
+        return AssignStatement(Identifier("x", Location(1, 1, 1, 1)),
+                               Call(Identifier("f", Location(1, 5, 1, 5)),
+                                    ArgumentsList([Identifier("y", Location(1, 7, 1, 7))],
+                                                  Location(1, 6, 1, 8)),
+                                    Location(1, 5, 1, 8)),
+                               Location(1, 1, 1, 9))
 
     def _get_rule(self):
         return parse_assign
@@ -137,7 +217,7 @@ class TrivialParseParametersTest(TestBases.SuccessfulParsingTestBase):
         return parse_parameters
 
     def _get_expected(self):
-        return []
+        return ParametersList([], Location(1, 1, 1, 2))
 
 
 class SimpleParseParametersTestOne(TestBases.SuccessfulParsingTestBase):
@@ -148,7 +228,7 @@ class SimpleParseParametersTestOne(TestBases.SuccessfulParsingTestBase):
         return parse_parameters
 
     def _get_expected(self):
-        return ["x"]
+        return ParametersList([Identifier("x", Location(1, 2, 1, 2))], Location(1, 1, 1, 3))
 
 
 class SimpleParseParametersTestTwo(TestBases.SuccessfulParsingTestBase):
@@ -159,7 +239,10 @@ class SimpleParseParametersTestTwo(TestBases.SuccessfulParsingTestBase):
         return parse_parameters
 
     def _get_expected(self):
-        return ["x", "z", "ab"]
+        return ParametersList([Identifier("x", Location(1, 2, 1, 2)),
+                               Identifier("z", Location(1, 5, 1, 5)),
+                               Identifier("ab", Location(1, 8, 1, 9))],
+                              Location(1, 1, 1, 10))
 
 
 class SimpleParseCallStatementTest(TestBases.SuccessfulParsingTestBase):
@@ -170,16 +253,34 @@ class SimpleParseCallStatementTest(TestBases.SuccessfulParsingTestBase):
         return parse_call_statement
 
     def _get_expected(self):
-        return CallStatement(Call("proc",
-                                  [Call("f",
-                                        [Call("g",
-                                              [BinaryOperation(BinaryOperatorKind.MINUS,
-                                                               "x",
-                                                               1)])]),
-                                   BinaryOperation(BinaryOperatorKind.PLUS,
-                                                   "y",
-                                                   1),
-                                   2]))
+        return CallStatement(Call(Identifier("proc", Location(1, 1, 1, 4)),
+                                  ArgumentsList([Call(Identifier("f", Location(1, 6, 1, 6)),
+                                                      ArgumentsList([Call(Identifier("g", Location(1, 8, 1, 8)),
+                                                                          ArgumentsList(
+                                                                              [BinaryOperation(BinaryOperatorKind.MINUS,
+                                                                                               Identifier("x",
+                                                                                                          Location(1,
+                                                                                                                   10,
+                                                                                                                   1,
+                                                                                                                   10)),
+                                                                                               Integer(1,
+                                                                                                       Location(1, 14,
+                                                                                                                1,
+                                                                                                                14)),
+                                                                                               Location(1, 10, 1,
+                                                                                                        14))],
+                                                                              Location(1, 9, 1, 15)),
+                                                                          Location(1, 8, 1, 15))],
+                                                                    Location(1, 7, 1, 16)),
+                                                      Location(1, 6, 1, 16)),
+                                                 BinaryOperation(BinaryOperatorKind.PLUS,
+                                                                 Identifier("y", Location(1, 19, 1, 19)),
+                                                                 Integer(1, Location(1, 23, 1, 23)),
+                                                                 Location(1, 19, 1, 23)),
+                                                 Integer(2, Location(1, 26, 1, 26))],
+                                                Location(1, 5, 1, 27)),
+                                  Location(1, 1, 1, 27)),
+                             Location(1, 1, 1, 28))
 
 
 class SimplestParseReturnStatementTest(TestBases.SuccessfulParsingTestBase):
@@ -190,7 +291,7 @@ class SimplestParseReturnStatementTest(TestBases.SuccessfulParsingTestBase):
         return parse_return
 
     def _get_expected(self):
-        return ReturnStatement()
+        return ReturnStatement(None, Location(1, 1, 1, 7))
 
 
 class SimpleParseReturnStatementTest(TestBases.SuccessfulParsingTestBase):
@@ -201,7 +302,10 @@ class SimpleParseReturnStatementTest(TestBases.SuccessfulParsingTestBase):
         return parse_return
 
     def _get_expected(self):
-        return ReturnStatement(UnaryOperation(UnaryOperatorKind.MINUS, "x"))
+        return ReturnStatement(UnaryOperation(UnaryOperatorKind.MINUS,
+                                              Identifier("x", Location(1, 9, 1, 9)),
+                                              Location(1, 8, 1, 9)),
+                               Location(1, 1, 1, 10))
 
 
 class SimpleParseIfStatementTest(TestBases.SuccessfulParsingTestBase):
@@ -212,8 +316,17 @@ class SimpleParseIfStatementTest(TestBases.SuccessfulParsingTestBase):
         return parse_if
 
     def _get_expected(self):
-        return IfStatement(BinaryOperation(BinaryOperatorKind.LESS, "x", 0),
-                           [ReturnStatement(UnaryOperation(UnaryOperatorKind.MINUS, "x"))])
+        return IfStatement(BinaryOperation(BinaryOperatorKind.LESS,
+                                           Identifier("x", Location(1, 5, 1, 5)),
+                                           Integer(0, Location(1, 9, 1, 9)),
+                                           Location(1, 4, 1, 10)),
+                           Block([ReturnStatement(UnaryOperation(UnaryOperatorKind.MINUS,
+                                                                 Identifier("x", Location(1, 21, 1, 21)),
+                                                                 Location(1, 20, 1, 21)),
+                                                  Location(1, 13, 1, 22))],
+                                 Location(1, 12, 1, 23)),
+                           None,
+                           Location(1, 1, 1, 23))
 
 
 class SimpleParseIfElseStatementTest(TestBases.SuccessfulParsingTestBase):
@@ -224,9 +337,22 @@ class SimpleParseIfElseStatementTest(TestBases.SuccessfulParsingTestBase):
         return parse_if
 
     def _get_expected(self):
-        return IfStatement(BinaryOperation(BinaryOperatorKind.GEQ, "z", 0),
-                           [AssignStatement("res", 1)],
-                           [CallStatement(Call("throw", ["z"]))])
+        return IfStatement(BinaryOperation(BinaryOperatorKind.GEQ,
+                                           Identifier("z", Location(1, 5, 1, 5)),
+                                           Integer(0, Location(1, 10, 1, 10)),
+                                           Location(1, 4, 1, 11)),
+                           Block([AssignStatement(
+                               Identifier("res", Location(1, 14, 1, 16)),
+                               Integer(1, Location(1, 20, 1, 20)),
+                               Location(1, 14, 1, 21))],
+                               Location(1, 13, 1, 22)),
+                           Block([CallStatement(Call(Identifier("throw", Location(1, 30, 1, 34)),
+                                                     ArgumentsList([Identifier("z", Location(1, 36, 1, 36))],
+                                                                   Location(1, 35, 1, 37)),
+                                                     Location(1, 30, 1, 37)),
+                                                Location(1, 30, 1, 38))],
+                                 Location(1, 29, 1, 39)),
+                           Location(1, 1, 1, 39))
 
 
 class SimpleParseBlockTest(TestBases.SuccessfulParsingTestBase):
@@ -237,10 +363,26 @@ class SimpleParseBlockTest(TestBases.SuccessfulParsingTestBase):
         return parse_block
 
     def _get_expected(self):
-        return [AssignStatement("x", 2),
-                AssignStatement("y", "x"),
-                IfStatement(BinaryOperation(BinaryOperatorKind.LESS, "c", 0),
-                            [ReturnStatement("y")])]
+        return Block([
+            AssignStatement(
+                Identifier("x", Location(1, 2, 1, 2)),
+                Integer(2, Location(1, 6, 1, 6)),
+                Location(1, 2, 1, 7)),
+            AssignStatement(
+                Identifier("y", Location(1, 9, 1, 9)),
+                Identifier("x", Location(1, 13, 1, 13)),
+                Location(1, 9, 1, 14)),
+            IfStatement(BinaryOperation(BinaryOperatorKind.LESS,
+                                        Identifier("c", Location(1, 20, 1, 20)),
+                                        Integer(0, Location(1, 24, 1, 24)),
+                                        Location(1, 19, 1, 25)),
+                        Block([ReturnStatement(Identifier("y", Location(1, 35, 1, 35)),
+                                               Location(1, 28, 1, 36))],
+                              Location(1, 27, 1, 37)),
+                        None,
+                        Location(1, 16, 1, 37))
+        ],
+            Location(1, 1, 1, 38))
 
 
 class SimpleParseFunctionTest(TestBases.SuccessfulParsingTestBase):
@@ -248,12 +390,16 @@ class SimpleParseFunctionTest(TestBases.SuccessfulParsingTestBase):
         return "function foo() {return 42;}"
 
     def _get_rule(self):
-        return parse_function
+        return parse_subroutine
 
     def _get_expected(self):
-        return FunctionDecl("foo",
-                            [],
-                            [ReturnStatement(42)])
+        return SubroutineDecl(SubroutineKind.FUNCTION,
+                              Identifier("foo", Location(1, 10, 1, 12)),
+                              ParametersList([], Location(1, 13, 1, 14)),
+                              Block([ReturnStatement(Integer(42, Location(1, 24, 1, 25)),
+                                                     Location(1, 17, 1, 26))],
+                                    Location(1, 16, 1, 27)),
+                              Location(1, 1, 1, 27))
 
 
 class SimpleParseProcedureTest(TestBases.SuccessfulParsingTestBase):
@@ -261,46 +407,117 @@ class SimpleParseProcedureTest(TestBases.SuccessfulParsingTestBase):
         return "procedure doSomething(x, y) {z = x + y;}"
 
     def _get_rule(self):
-        return parse_procedure
+        return parse_subroutine
 
     def _get_expected(self):
-        return ProcedureDecl("doSomething",
-                             ["x", "y"],
-                             [AssignStatement("z", BinaryOperation(BinaryOperatorKind.PLUS, "x", "y"))])
+        return SubroutineDecl(SubroutineKind.PROCEDURE,
+                              Identifier("doSomething", Location(1, 11, 1, 21)),
+                              ParametersList([
+                                  Identifier("x", Location(1, 23, 1, 23)),
+                                  Identifier("y", Location(1, 26, 1, 26))],
+                                  Location(1, 22, 1, 27)),
+                              Block([
+                                  AssignStatement(Identifier("z", Location(1, 30, 1, 30)),
+                                                  BinaryOperation(BinaryOperatorKind.PLUS,
+                                                                  Identifier("x", Location(1, 34, 1, 34)),
+                                                                  Identifier("y", Location(1, 38, 1, 38)),
+                                                                  Location(1, 34, 1, 38)),
+                                                  Location(1, 30, 1, 39))],
+                                  Location(1, 29, 1, 40)),
+                              Location(1, 1, 1, 40))
 
 
 class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
     def _get_input(self):
-        with open('resources/fact7.ms') as file:
+        with open('resources/fact7.mas') as file:
             return file.read()
 
     def _get_rule(self):
         return parse_script
 
     def _get_expected(self):
-        return Script([AssignStatement("n", 0),
-                       FunctionDecl("getThree", [], [ReturnStatement(3)]),
-                       ProcedureDecl("initNSix", [], [AssignStatement("n", BinaryOperation(BinaryOperatorKind.MINUS,
-                                                                                           BinaryOperation(
-                                                                                               BinaryOperatorKind.MUL,
-                                                                                               Call("getThree", []),
-                                                                                               2),
-                                                                                           1))]),
-                       FunctionDecl("fact", ["n"], [IfStatement(BinaryOperation(BinaryOperatorKind.GEQ,
-                                                                                "n",
-                                                                                0),
-                                                                [IfStatement(BinaryOperation(BinaryOperatorKind.EQ,
-                                                                                             "n",
-                                                                                             0),
-                                                                             [ReturnStatement(1)]),
-                                                                 ReturnStatement(BinaryOperation(BinaryOperatorKind.MUL,
-                                                                                                 "n",
-                                                                                                 Call("fact", [
-                                                                                                     BinaryOperation(
-                                                                                                         BinaryOperatorKind.MINUS,
-                                                                                                         "n",
-                                                                                                         1)])))],
-                                                                [ReturnStatement(
-                                                                    UnaryOperation(UnaryOperatorKind.MINUS, 1))])]),
-                       CallStatement(Call("initNSix", [])),
-                       ReturnStatement(Call("fact", ["n"]))])
+        n_def = AssignStatement(Identifier("n", Location(2, 1, 2, 1)),
+                                Integer(0, Location(2, 5, 2, 5)),
+                                Location(2, 1, 2, 6))
+        get_three_decl = SubroutineDecl(SubroutineKind.FUNCTION,
+                                        Identifier("getThree", Location(4, 10, 4, 17)),
+                                        ParametersList([], Location(4, 18, 4, 19)),
+                                        Block([ReturnStatement(Integer(3, Location(5, 12, 5, 12)),
+                                                               Location(5, 5, 5, 13))],
+                                              Location(4, 21, 6, 1)),
+                                        Location(4, 1, 6, 1))
+        n_assign = AssignStatement(Identifier("n", Location(9, 5, 9, 5)),
+                                   BinaryOperation(BinaryOperatorKind.MINUS,
+                                                   BinaryOperation(BinaryOperatorKind.MUL,
+                                                                   Call(
+                                                                       Identifier("getThree", Location(9, 9, 9, 16)),
+                                                                       ArgumentsList([], Location(9, 17, 9, 18)),
+                                                                       Location(9, 9, 9, 18)),
+                                                                   Integer(2, Location(9, 22, 9, 22)),
+                                                                   Location(9, 9, 9, 22)),
+                                                   Integer(1, Location(9, 26, 9, 26)),
+                                                   Location(9, 9, 9, 26)),
+                                   Location(9, 5, 9, 27))
+        init_n_six_decl = SubroutineDecl(SubroutineKind.PROCEDURE,
+                                         Identifier("initNSix", Location(8, 11, 8, 18)),
+                                         ParametersList([], Location(8, 19, 8, 20)),
+                                         Block([n_assign], Location(8, 22, 10, 1)),
+                                         Location(8, 1, 10, 1))
+        init_n_six_call = CallStatement(Call(Identifier("initNSix", Location(24, 1, 24, 8)),
+                                             ArgumentsList([], Location(24, 9, 24, 10)),
+                                             Location(24, 1, 24, 10)),
+                                        Location(24, 1, 24, 11))
+        ret = ReturnStatement(Call(Identifier("fact", Location(25, 8, 25, 11)),
+                                   ArgumentsList([Identifier("n", Location(25, 13, 25, 13))],
+                                                 Location(25, 12, 25, 14)),
+                                   Location(25, 8, 25, 14)),
+                              Location(25, 1, 25, 15))
+        n_zero_if = IfStatement(BinaryOperation(BinaryOperatorKind.EQ,
+                                                Identifier("n", Location(14, 13, 14, 13)),
+                                                Integer(0, Location(14, 18, 14, 18)),
+                                                Location(14, 12, 14, 19)),
+                                Block([ReturnStatement(Integer(1, Location(15, 20, 15, 20)),
+                                                       Location(15, 13, 15, 21))],
+                                      Location(14, 21, 16, 9)),
+                                None,
+                                Location(14, 9, 16, 9))
+        return_rec_call = ReturnStatement(BinaryOperation(BinaryOperatorKind.MUL,
+                                                          Identifier("n", Location(17, 16, 17, 16)),
+                                                          Call(Identifier("fact", Location(17, 20, 17, 23)),
+                                                               ArgumentsList([BinaryOperation(BinaryOperatorKind.MINUS,
+                                                                                              Identifier("n",
+                                                                                                         Location(17,
+                                                                                                                  25,
+                                                                                                                  17,
+                                                                                                                  25)),
+                                                                                              Integer(1,
+                                                                                                      Location(17, 29,
+                                                                                                               17, 29)),
+                                                                                              Location(17, 25, 17,
+                                                                                                       29))],
+                                                                             Location(17, 24, 17, 30)),
+                                                               Location(17, 20, 17, 30)),
+                                                          Location(17, 16, 17, 30)),
+                                          Location(17, 9, 17, 31))
+        fact_main_if_then = Block([n_zero_if, return_rec_call],
+                                  Location(13, 17, 18, 5))
+        fact_main_if_else = Block([ReturnStatement(UnaryOperation(UnaryOperatorKind.MINUS,
+                                                                  Integer(1, Location(19, 17, 19, 17)),
+                                                                  Location(19, 16, 19, 17)),
+                                                   Location(19, 9, 19, 18))],
+                                  Location(18, 12, 20, 5))
+        fact_main_if = IfStatement(BinaryOperation(BinaryOperatorKind.GEQ,
+                                                   Identifier("n", Location(13, 9, 13, 9)),
+                                                   Integer(0, Location(13, 14, 13, 14)),
+                                                   Location(13, 8, 13, 15)),
+                                   fact_main_if_then,
+                                   fact_main_if_else,
+                                   Location(13, 5, 20, 5))
+        fact_body = Block([fact_main_if], Location(12, 18, 21, 1))
+        fact_decl = SubroutineDecl(SubroutineKind.FUNCTION,
+                                   Identifier("fact", Location(12, 10, 12, 13)),
+                                   ParametersList([Identifier("n", Location(12, 15, 12, 15))],
+                                                  Location(12, 14, 12, 16)),
+                                   fact_body,
+                                   Location(12, 1, 21, 1))
+        return Script([n_def, get_three_decl, init_n_six_decl, fact_decl, init_n_six_call, ret])

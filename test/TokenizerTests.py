@@ -1,6 +1,6 @@
 import unittest
 
-from parsing.Tokenizer import Tokenizer, Token, UnexpectedCharException, IllegalRollbackException
+from parsing.Tokenizer import Tokenizer, Token, UnexpectedCharException, IllegalRollbackException, Location
 
 
 class TestBases:
@@ -13,7 +13,7 @@ class TestBases:
 
         def test_tokenization(self):
             tokenizer = Tokenizer(self._get_input())
-            self.assertEqual(tokenizer.current(), Token("SOF", None, 1, 0, 0))
+            self.assertEqual(tokenizer.current(), Token("SOF", None, Location(1, 0, 0)))
             last_token = tokenizer.current()
             for expected_token in self._get_expected():
                 tokenizer.advance()
@@ -21,8 +21,10 @@ class TestBases:
                 last_token = tokenizer.current()
             tokenizer.advance()
             self.assertEqual(tokenizer.current(),
-                             Token("EOF", "\0", last_token.line, last_token.column_end + 1,
-                                   last_token.column_end + 1))
+                             Token("EOF",
+                                   "\0",
+                                   Location(last_token.location.line, last_token.location.column_end + 1,
+                                            last_token.location.column_end + 1)))
             with self.assertRaises(EOFError):
                 tokenizer.advance()
 
@@ -38,7 +40,7 @@ class TestBases:
 
         def test_tokenization(self):
             tokenizer = Tokenizer(self._get_input())
-            self.assertEqual(tokenizer.current(), Token("SOF", None, 1, 0, 0))
+            self.assertEqual(tokenizer.current(), Token("SOF", None, Location(1, 0, 0)))
             for expected_token in self._get_expected_tokens():
                 tokenizer.advance()
                 self.assertEqual(tokenizer.current(), expected_token)
@@ -52,7 +54,7 @@ class SimplestTest(TestBases.SuccessfulTokenizingTestBase):
         return "if"
 
     def _get_expected(self):
-        return [Token("if", "if", 1, 1, 2)]
+        return [Token("if", "if", Location(1, 1, 2))]
 
 
 class SimpleTest(TestBases.SuccessfulTokenizingTestBase):
@@ -60,22 +62,22 @@ class SimpleTest(TestBases.SuccessfulTokenizingTestBase):
         return "if (cond) { return 1; } else {return -4;}"
 
     def _get_expected(self):
-        return [Token("if", "if", 1, 1, 2),
-                Token("(", "(", 1, 4, 4),
-                Token("IDENT", "cond", 1, 5, 8),
-                Token(")", ")", 1, 9, 9),
-                Token("{", "{", 1, 11, 11),
-                Token("return", "return", 1, 13, 18),
-                Token("INT", 1, 1, 20, 20),
-                Token(";", ";", 1, 21, 21),
-                Token("}", "}", 1, 23, 23),
-                Token("else", "else", 1, 25, 28),
-                Token("{", "{", 1, 30, 30),
-                Token("return", "return", 1, 31, 36),
-                Token("-", "-", 1, 38, 38),
-                Token("INT", 4, 1, 39, 39),
-                Token(";", ";", 1, 40, 40),
-                Token("}", "}", 1, 41, 41)]
+        return [Token("if", "if", Location(1, 1, 2)),
+                Token("(", "(", Location(1, 4, 4)),
+                Token("IDENT", "cond", Location(1, 5, 8)),
+                Token(")", ")", Location(1, 9, 9)),
+                Token("{", "{", Location(1, 11, 11)),
+                Token("return", "return", Location(1, 13, 18)),
+                Token("INT", 1, Location(1, 20, 20)),
+                Token(";", ";", Location(1, 21, 21)),
+                Token("}", "}", Location(1, 23, 23)),
+                Token("else", "else", Location(1, 25, 28)),
+                Token("{", "{", Location(1, 30, 30)),
+                Token("return", "return", Location(1, 31, 36)),
+                Token("-", "-", Location(1, 38, 38)),
+                Token("INT", 4, Location(1, 39, 39)),
+                Token(";", ";", Location(1, 40, 40)),
+                Token("}", "}", Location(1, 41, 41))]
 
 
 class MultilineTest(TestBases.SuccessfulTokenizingTestBase):
@@ -83,26 +85,26 @@ class MultilineTest(TestBases.SuccessfulTokenizingTestBase):
         return "if (c) {\n    return -1;\n} else { return 2;}\n\na = 2;"
 
     def _get_expected(self):
-        return [Token("if", "if", 1, 1, 2),
-                Token("(", "(", 1, 4, 4),
-                Token("IDENT", "c", 1, 5, 5),
-                Token(")", ")", 1, 6, 6),
-                Token("{", "{", 1, 8, 8),
-                Token("return", "return", 2, 5, 10),
-                Token("-", "-", 2, 12, 12),
-                Token("INT", 1, 2, 13, 13),
-                Token(";", ";", 2, 14, 14),
-                Token("}", "}", 3, 1, 1),
-                Token("else", "else", 3, 3, 6),
-                Token("{", "{", 3, 8, 8),
-                Token("return", "return", 3, 10, 15),
-                Token("INT", 2, 3, 17, 17),
-                Token(";", ";", 3, 18, 18),
-                Token("}", "}", 3, 19, 19),
-                Token("IDENT", "a", 5, 1, 1),
-                Token("=", "=", 5, 3, 3),
-                Token("INT", 2, 5, 5, 5),
-                Token(";", ";", 5, 6, 6)]
+        return [Token("if", "if", Location(1, 1, 2)),
+                Token("(", "(", Location(1, 4, 4)),
+                Token("IDENT", "c", Location(1, 5, 5)),
+                Token(")", ")", Location(1, 6, 6)),
+                Token("{", "{", Location(1, 8, 8)),
+                Token("return", "return", Location(2, 5, 10)),
+                Token("-", "-", Location(2, 12, 12)),
+                Token("INT", 1, Location(2, 13, 13)),
+                Token(";", ";", Location(2, 14, 14)),
+                Token("}", "}", Location(3, 1, 1)),
+                Token("else", "else", Location(3, 3, 6)),
+                Token("{", "{", Location(3, 8, 8)),
+                Token("return", "return", Location(3, 10, 15)),
+                Token("INT", 2, Location(3, 17, 17)),
+                Token(";", ";", Location(3, 18, 18)),
+                Token("}", "}", Location(3, 19, 19)),
+                Token("IDENT", "a", Location(5, 1, 1)),
+                Token("=", "=", Location(5, 3, 3)),
+                Token("INT", 2, Location(5, 5, 5)),
+                Token(";", ";", Location(5, 6, 6))]
 
 
 class BoolExpr(TestBases.SuccessfulTokenizingTestBase):
@@ -110,22 +112,22 @@ class BoolExpr(TestBases.SuccessfulTokenizingTestBase):
         return "(c) | (b & (a < 3)) | !d"
 
     def _get_expected(self):
-        return [Token("(", "(", 1, 1, 1),
-                Token("IDENT", "c", 1, 2, 2),
-                Token(")", ")", 1, 3, 3),
-                Token("|", "|", 1, 5, 5),
-                Token("(", "(", 1, 7, 7),
-                Token("IDENT", "b", 1, 8, 8),
-                Token("&", "&", 1, 10, 10),
-                Token("(", "(", 1, 12, 12),
-                Token("IDENT", "a", 1, 13, 13),
-                Token("<", "<", 1, 15, 15),
-                Token("INT", 3, 1, 17, 17),
-                Token(")", ")", 1, 18, 18),
-                Token(")", ")", 1, 19, 19),
-                Token("|", "|", 1, 21, 21),
-                Token("!", "!", 1, 23, 23),
-                Token("IDENT", "d", 1, 24, 24)]
+        return [Token("(", "(", Location(1, 1, 1)),
+                Token("IDENT", "c", Location(1, 2, 2)),
+                Token(")", ")", Location(1, 3, 3)),
+                Token("|", "|", Location(1, 5, 5)),
+                Token("(", "(", Location(1, 7, 7)),
+                Token("IDENT", "b", Location(1, 8, 8)),
+                Token("&", "&", Location(1, 10, 10)),
+                Token("(", "(", Location(1, 12, 12)),
+                Token("IDENT", "a", Location(1, 13, 13)),
+                Token("<", "<", Location(1, 15, 15)),
+                Token("INT", 3, Location(1, 17, 17)),
+                Token(")", ")", Location(1, 18, 18)),
+                Token(")", ")", Location(1, 19, 19)),
+                Token("|", "|", Location(1, 21, 21)),
+                Token("!", "!", Location(1, 23, 23)),
+                Token("IDENT", "d", Location(1, 24, 24))]
 
 
 class SimplestExceptionTest(TestBases.ExceptionTokenizingTestBase):
@@ -133,7 +135,7 @@ class SimplestExceptionTest(TestBases.ExceptionTokenizingTestBase):
         return "! #"
 
     def _get_expected_tokens(self):
-        return [Token("!", "!", 1, 1, 1)]
+        return [Token("!", "!", Location(1, 1, 1))]
 
     def _get_expected_exception(self):
         return UnexpectedCharException('#', 1, 3)
@@ -144,8 +146,8 @@ class TabTest(TestBases.SuccessfulTokenizingTestBase):
         return "{\treturn";
 
     def _get_expected(self):
-        return [Token("{", "{", 1, 1, 1),
-                Token("return", "return", 1, 6, 11)]
+        return [Token("{", "{", Location(1, 1, 1)),
+                Token("return", "return", Location(1, 6, 11))]
 
 
 class KeywordTest(TestBases.SuccessfulTokenizingTestBase):
@@ -153,10 +155,10 @@ class KeywordTest(TestBases.SuccessfulTokenizingTestBase):
         return "if els elseif else"
 
     def _get_expected(self):
-        return [Token("if", "if", 1, 1, 2),
-                Token("IDENT", "els", 1, 4, 6),
-                Token("IDENT", "elseif", 1, 8, 13),
-                Token("else", "else", 1, 15, 18)]
+        return [Token("if", "if", Location(1, 1, 2)),
+                Token("IDENT", "els", Location(1, 4, 6)),
+                Token("IDENT", "elseif", Location(1, 8, 13)),
+                Token("else", "else", Location(1, 15, 18))]
 
 
 class ComparisonTest(TestBases.SuccessfulTokenizingTestBase):
@@ -164,17 +166,17 @@ class ComparisonTest(TestBases.SuccessfulTokenizingTestBase):
         return "a < <= = == === ==== >= >"
 
     def _get_expected(self):
-        return [Token("IDENT", "a", 1, 1, 1),
-                Token("<", "<", 1, 3, 3),
-                Token("<=", "<=", 1, 5, 6),
-                Token("=", "=", 1, 8, 8),
-                Token("==", "==", 1, 10, 11),
-                Token("==", "==", 1, 13, 14),
-                Token("=", "=", 1, 15, 15),
-                Token("==", "==", 1, 17, 18),
-                Token("==", "==", 1, 19, 20),
-                Token(">=", ">=", 1, 22, 23),
-                Token(">", ">", 1, 25, 25)]
+        return [Token("IDENT", "a", Location(1, 1, 1)),
+                Token("<", "<", Location(1, 3, 3)),
+                Token("<=", "<=", Location(1, 5, 6)),
+                Token("=", "=", Location(1, 8, 8)),
+                Token("==", "==", Location(1, 10, 11)),
+                Token("==", "==", Location(1, 13, 14)),
+                Token("=", "=", Location(1, 15, 15)),
+                Token("==", "==", Location(1, 17, 18)),
+                Token("==", "==", Location(1, 19, 20)),
+                Token(">=", ">=", Location(1, 22, 23)),
+                Token(">", ">", Location(1, 25, 25))]
 
 
 class CallTest(TestBases.SuccessfulTokenizingTestBase):
@@ -182,21 +184,21 @@ class CallTest(TestBases.SuccessfulTokenizingTestBase):
         return "Foo(a, caBa+ d, -3*2, 0)"
 
     def _get_expected(self):
-        return [Token("IDENT", "Foo", 1, 1, 3),
-                Token("(", "(", 1, 4, 4),
-                Token("IDENT", "a", 1, 5, 5),
-                Token(",", ",", 1, 6, 6),
-                Token("IDENT", "caBa", 1, 8, 11),
-                Token("+", "+", 1, 12, 12),
-                Token("IDENT", "d", 1, 14, 14),
-                Token(",", ",", 1, 15, 15),
-                Token("-", "-", 1, 17, 17),
-                Token("INT", 3, 1, 18, 18),
-                Token("*", "*", 1, 19, 19),
-                Token("INT", 2, 1, 20, 20),
-                Token(",", ",", 1, 21, 21),
-                Token("INT", 0, 1, 23, 23),
-                Token(")", ")", 1, 24, 24)]
+        return [Token("IDENT", "Foo", Location(1, 1, 3)),
+                Token("(", "(", Location(1, 4, 4)),
+                Token("IDENT", "a", Location(1, 5, 5)),
+                Token(",", ",", Location(1, 6, 6)),
+                Token("IDENT", "caBa", Location(1, 8, 11)),
+                Token("+", "+", Location(1, 12, 12)),
+                Token("IDENT", "d", Location(1, 14, 14)),
+                Token(",", ",", Location(1, 15, 15)),
+                Token("-", "-", Location(1, 17, 17)),
+                Token("INT", 3, Location(1, 18, 18)),
+                Token("*", "*", Location(1, 19, 19)),
+                Token("INT", 2, Location(1, 20, 20)),
+                Token(",", ",", Location(1, 21, 21)),
+                Token("INT", 0, Location(1, 23, 23)),
+                Token(")", ")", Location(1, 24, 24))]
 
 
 class IntsTest(TestBases.SuccessfulTokenizingTestBase):
@@ -204,31 +206,31 @@ class IntsTest(TestBases.SuccessfulTokenizingTestBase):
         return "1 10 001 -03 - 2 1x x1 --3"
 
     def _get_expected(self):
-        return [Token("INT", 1, 1, 1, 1),
-                Token("INT", 10, 1, 3, 4),
-                Token("INT", 1, 1, 6, 8),
-                Token("-", "-", 1, 10, 10),
-                Token("INT", 3, 1, 11, 12),
-                Token("-", "-", 1, 14, 14),
-                Token("INT", 2, 1, 16, 16),
-                Token("INT", 1, 1, 18, 18),
-                Token("IDENT", "x", 1, 19, 19),
-                Token("IDENT", "x1", 1, 21, 22),
-                Token("-", "-", 1, 24, 24),
-                Token("-", "-", 1, 25, 25),
-                Token("INT", 3, 1, 26, 26)]
+        return [Token("INT", 1, Location(1, 1, 1)),
+                Token("INT", 10, Location(1, 3, 4)),
+                Token("INT", 1, Location(1, 6, 8)),
+                Token("-", "-", Location(1, 10, 10)),
+                Token("INT", 3, Location(1, 11, 12)),
+                Token("-", "-", Location(1, 14, 14)),
+                Token("INT", 2, Location(1, 16, 16)),
+                Token("INT", 1, Location(1, 18, 18)),
+                Token("IDENT", "x", Location(1, 19, 19)),
+                Token("IDENT", "x1", Location(1, 21, 22)),
+                Token("-", "-", Location(1, 24, 24)),
+                Token("-", "-", Location(1, 25, 25)),
+                Token("INT", 3, Location(1, 26, 26))]
 
 
 class SimplestRollbackTest(unittest.TestCase):
     def test_tokenization(self):
         tokenizer = Tokenizer("if\nelse\n\n0 -10")
-        expected_tokens = [Token("SOF", None, 1, 0, 0),
-                           Token("if", "if", 1, 1, 2),
-                           Token("else", "else", 2, 1, 4),
-                           Token("INT", 0, 4, 1, 1),
-                           Token("-", "-", 4, 3, 3),
-                           Token("INT", 10, 4, 4, 5),
-                           Token("EOF", "\0", 4, 6, 6)]
+        expected_tokens = [Token("SOF", None, Location(1, 0, 0)),
+                           Token("if", "if", Location(1, 1, 2)),
+                           Token("else", "else", Location(2, 1, 4)),
+                           Token("INT", 0, Location(4, 1, 1)),
+                           Token("-", "-", Location(4, 3, 3)),
+                           Token("INT", 10, Location(4, 4, 5)),
+                           Token("EOF", "\0", Location(4, 6, 6))]
         self.assertEqual(tokenizer.current(), expected_tokens[0])
         tokenizer.advance()
         self.assertEqual(tokenizer.current(), expected_tokens[1])
@@ -268,10 +270,10 @@ class SimplestIllegalRollbackTest(unittest.TestCase):
 class IllegalRollbackTest(unittest.TestCase):
     def test_tokenization(self):
         tokenizer = Tokenizer("-1 if 3")
-        expected_tokens = [Token("SOF", None, 1, 0, 0),
-                           Token("-", "-", 1, 1, 1),
-                           Token("INT", 1, 1, 2, 2),
-                           Token("if", "if", 1, 4, 5)]
+        expected_tokens = [Token("SOF", None, Location(1, 0, 0)),
+                           Token("-", "-", Location(1, 1, 1)),
+                           Token("INT", 1, Location(1, 2, 2)),
+                           Token("if", "if", Location(1, 4, 5))]
         self.assertEqual(tokenizer.current(), expected_tokens[0])
         tokenizer.advance()
         tokenizer.rollback()
@@ -293,10 +295,10 @@ class TabTestTwo(TestBases.SuccessfulTokenizingTestBase):
         return "if c\n\treturn 1"
 
     def _get_expected(self):
-        return [Token("if", "if", 1, 1, 2),
-                Token("IDENT", "c", 1, 4, 4),
-                Token("return", "return", 2, 5, 10),
-                Token("INT", 1, 2, 12, 12)]
+        return [Token("if", "if", Location(1, 1, 2)),
+                Token("IDENT", "c", Location(1, 4, 4)),
+                Token("return", "return", Location(2, 5, 10)),
+                Token("INT", 1, Location(2, 12, 12))]
 
 
 class SimpleTabTest(TestBases.SuccessfulTokenizingTestBase):
@@ -304,9 +306,9 @@ class SimpleTabTest(TestBases.SuccessfulTokenizingTestBase):
         return "if\n\treturn\n\t\tx"
 
     def _get_expected(self):
-        return [Token("if", "if", 1, 1, 2),
-                Token("return", "return", 2, 5, 10),
-                Token("IDENT", "x", 3, 9, 9)]
+        return [Token("if", "if", Location(1, 1, 2)),
+                Token("return", "return", Location(2, 5, 10)),
+                Token("IDENT", "x", Location(3, 9, 9))]
 
 
 if __name__ == '__main__':

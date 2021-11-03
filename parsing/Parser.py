@@ -108,6 +108,8 @@ def parse_statement(tokenizer):
                     return parse_assign(tokenizer)
                 case _:
                     raise ParserException(tokenizer.current(), ["(", "="])
+        case "var":
+            return parse_variable_declaration(tokenizer)
         case _:
             raise ParserException(tokenizer.current(), ["return", "if", "IDENT"])
 
@@ -264,12 +266,21 @@ def parse_call(tokenizer):
     return Call(subroutine, arguments, _interval_location(subroutine.location, arguments.location))
 
 
-def parse_assign(tokenizer):
+def parse_assign(tokenizer: Tokenizer):
     var = parse_identifier(tokenizer)
     _eat_token(tokenizer, "=")
     expr = parse_expr(tokenizer)
     last_token = _eat_token(tokenizer, ";")
     return AssignStatement(var, expr, _interval_location(var.location, last_token.location))
+
+
+def parse_variable_declaration(tokenizer: Tokenizer):
+    first_token = _eat_token(tokenizer, "var")
+    var = parse_identifier(tokenizer)
+    _eat_token(tokenizer, "=")
+    expr = parse_expr(tokenizer)
+    last_token = _eat_token(tokenizer, ";")
+    return VariableDeclaration(var, expr, _interval_location(first_token.location, last_token.location))
 
 
 def parse_script(tokenizer: Tokenizer):
@@ -278,8 +289,8 @@ def parse_script(tokenizer: Tokenizer):
         if tokenizer.current().type in ["function", "procedure"]:
             body.append(parse_subroutine(tokenizer))
             continue
-        if tokenizer.current().type in ["return", "IDENT", "if"]:
+        if tokenizer.current().type in ["return", "IDENT", "if", "var"]:
             body.append(parse_statement(tokenizer))
             continue
-        raise ParserException(tokenizer.current(), ["function", "procedure", "return", "IDENT", "if"])
+        raise ParserException(tokenizer.current(), ["function", "procedure", "return", "IDENT", "if", "var"])
     return Script(body)

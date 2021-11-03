@@ -1,14 +1,14 @@
 
-n = 0;
+var inputVariable = 0;
 
 function getThree() {
-    return 3;
+    var localVar = 3;
+    return localVar;
 }
-
 procedure initNSix() {
-    n = getThree() * 2 - 1;
+    var localVar = getThree() * 2 - 1;
+    inputVariable = localVar;
 }
-
 function fact(n) {
     if (n >= 0) {
         if (n == 0) {
@@ -22,4 +22,4 @@ function fact(n) {
 
 
 initNSix();
-return fact(n);
+return fact(inputVariable);

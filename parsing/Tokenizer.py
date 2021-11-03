@@ -53,7 +53,7 @@ class Tokenizer:
         word_match = re.match("[a-zA-Z][a-zA-Z0-9]*", self._text[pos:])
         if word_match:
             match_str = word_match.group(0)
-            if match_str in ["if", "else", "function", "procedure", "return"]:
+            if match_str in ["if", "else", "function", "procedure", "return", "var"]:
                 next_token = Token(match_str, match_str,
                                    Location(self._line, self._column, self._column + len(match_str) - 1))
             else:

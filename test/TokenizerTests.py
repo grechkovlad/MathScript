@@ -311,5 +311,17 @@ class SimpleTabTest(TestBases.SuccessfulTokenizingTestBase):
                 Token("IDENT", "x", Location(3, 9, 9))]
 
 
+class SimplestVariableDeclarationTest(TestBases.SuccessfulTokenizingTestBase):
+    def _get_input(self):
+        return "var x = 1;"
+
+    def _get_expected(self):
+        return [Token("var", "var", Location(1, 1, 3)),
+                Token("IDENT", "x", Location(1, 5, 5)),
+                Token("=", "=", Location(1, 7, 7)),
+                Token("INT", 1, Location(1, 9, 9)),
+                Token(";", ";", Location(1, 10, 10))]
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -427,6 +427,19 @@ class SimpleParseProcedureTest(TestBases.SuccessfulParsingTestBase):
                               Location(1, 1, 1, 40))
 
 
+class SimpleVariableDeclarationTest(TestBases.SuccessfulParsingTestBase):
+    def _get_input(self):
+        return "var x = 1;"
+
+    def _get_rule(self):
+        return parse_variable_declaration
+
+    def _get_expected(self):
+        return VariableDeclaration(Identifier("x", Location(1, 5, 1, 5)),
+                                   Integer(1, Location(1, 9, 1, 9)),
+                                   Location(1, 1, 1, 10))
+
+
 class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
     def _get_input(self):
         with open('resources/fact7.mas') as file:
@@ -436,42 +449,56 @@ class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
         return parse_script
 
     def _get_expected(self):
-        n_def = AssignStatement(Identifier("n", Location(2, 1, 2, 1)),
-                                Integer(0, Location(2, 5, 2, 5)),
-                                Location(2, 1, 2, 6))
+        input_var_decl = VariableDeclaration(Identifier("inputVariable", Location(2, 5, 2, 17)),
+                                    Integer(0, Location(2, 21, 2, 21)),
+                                    Location(2, 1, 2, 22))
+
         get_three_decl = SubroutineDecl(SubroutineKind.FUNCTION,
                                         Identifier("getThree", Location(4, 10, 4, 17)),
                                         ParametersList([], Location(4, 18, 4, 19)),
-                                        Block([ReturnStatement(Integer(3, Location(5, 12, 5, 12)),
-                                                               Location(5, 5, 5, 13))],
-                                              Location(4, 21, 6, 1)),
-                                        Location(4, 1, 6, 1))
-        n_assign = AssignStatement(Identifier("n", Location(9, 5, 9, 5)),
-                                   BinaryOperation(BinaryOperatorKind.MINUS,
-                                                   BinaryOperation(BinaryOperatorKind.MUL,
-                                                                   Call(
-                                                                       Identifier("getThree", Location(9, 9, 9, 16)),
-                                                                       ArgumentsList([], Location(9, 17, 9, 18)),
-                                                                       Location(9, 9, 9, 18)),
-                                                                   Integer(2, Location(9, 22, 9, 22)),
-                                                                   Location(9, 9, 9, 22)),
-                                                   Integer(1, Location(9, 26, 9, 26)),
-                                                   Location(9, 9, 9, 26)),
-                                   Location(9, 5, 9, 27))
+                                        Block([VariableDeclaration(Identifier("localVar", Location(5, 9, 5, 16)),
+                                                                   Integer(3, Location(5, 20, 5, 20)),
+                                                                   Location(5, 5, 5, 21)),
+                                               ReturnStatement(Identifier("localVar", Location(6, 12, 6, 19)),
+                                                               Location(6, 5, 6, 20))],
+                                              Location(4, 21, 7, 1)),
+                                        Location(4, 1, 7, 1))
+
+        init_n_six_local_var_init_expr = BinaryOperation(BinaryOperatorKind.MINUS,
+                                                         BinaryOperation(BinaryOperatorKind.MUL,
+                                                                         Call(Identifier("getThree",
+                                                                                         Location(9, 20, 9, 27)),
+                                                                              ArgumentsList([], Location(9, 28, 9, 29)),
+                                                                              Location(9, 20, 9, 29)),
+                                                                         Integer(2, Location(9, 33, 9, 33)),
+                                                                         Location(9, 20, 9, 33)),
+                                                         Integer(1, Location(9, 37, 9, 37)),
+                                                         Location(9, 20, 9, 37))
+
+        init_n_six_local_var_decl = VariableDeclaration(Identifier("localVar", Location(9, 9, 9, 16)),
+                                                        init_n_six_local_var_init_expr,
+                                                        Location(9, 5, 9, 38))
+
+        input_var_assign = AssignStatement(Identifier("inputVariable", Location(10, 5, 10, 17)),
+                                           Identifier("localVar", Location(10, 21, 10, 28)),
+                                           Location(10, 5, 10, 29))
+
         init_n_six_decl = SubroutineDecl(SubroutineKind.PROCEDURE,
                                          Identifier("initNSix", Location(8, 11, 8, 18)),
                                          ParametersList([], Location(8, 19, 8, 20)),
-                                         Block([n_assign], Location(8, 22, 10, 1)),
-                                         Location(8, 1, 10, 1))
+                                         Block([init_n_six_local_var_decl, input_var_assign],
+                                               Location(8, 22, 11, 1)),
+                                         Location(8, 1, 11, 1))
+
         init_n_six_call = CallStatement(Call(Identifier("initNSix", Location(24, 1, 24, 8)),
                                              ArgumentsList([], Location(24, 9, 24, 10)),
                                              Location(24, 1, 24, 10)),
                                         Location(24, 1, 24, 11))
         ret = ReturnStatement(Call(Identifier("fact", Location(25, 8, 25, 11)),
-                                   ArgumentsList([Identifier("n", Location(25, 13, 25, 13))],
-                                                 Location(25, 12, 25, 14)),
-                                   Location(25, 8, 25, 14)),
-                              Location(25, 1, 25, 15))
+                                   ArgumentsList([Identifier("inputVariable", Location(25, 13, 25, 25))],
+                                                 Location(25, 12, 25, 26)),
+                                   Location(25, 8, 25, 26)),
+                              Location(25, 1, 25, 27))
         n_zero_if = IfStatement(BinaryOperation(BinaryOperatorKind.EQ,
                                                 Identifier("n", Location(14, 13, 14, 13)),
                                                 Integer(0, Location(14, 18, 14, 18)),
@@ -520,4 +547,4 @@ class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
                                                   Location(12, 14, 12, 16)),
                                    fact_body,
                                    Location(12, 1, 21, 1))
-        return Script([n_def, get_three_decl, init_n_six_decl, fact_decl, init_n_six_call, ret])
+        return Script([input_var_decl, get_three_decl, init_n_six_decl, fact_decl, init_n_six_call, ret])

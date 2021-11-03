@@ -79,11 +79,11 @@ class Block(Node):
 
 class Script:
     def __init__(self, statements):
-        self.statements = statements
+        self.body = statements
 
     def __eq__(self, other):
         if isinstance(other, Script):
-            return self.statements == other.statements
+            return self.body == other.body
         raise NotImplementedError()
 
 
@@ -130,6 +130,18 @@ class AssignStatement(Node):
     def __eq__(self, other):
         if isinstance(other, AssignStatement):
             return self.var == other.var and self.expr == other.expr and self.location == other.location
+        raise NotImplementedError()
+
+
+class VariableDeclaration(Node):
+    def __init__(self, var: Identifier, init_expr, location: Location):
+        super(VariableDeclaration, self).__init__(location)
+        self.var = var
+        self.init_expr = init_expr
+
+    def __eq__(self, other):
+        if isinstance(other, VariableDeclaration):
+            return self.var == other.var and self.init_expr == other.init_expr and self.location == other.location
         raise NotImplementedError()
 
 

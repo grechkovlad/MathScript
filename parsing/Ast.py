@@ -148,19 +148,19 @@ class VariableDeclaration(Node):
 class Call(Node):
     def __init__(self, subroutine: Identifier, arguments: ArgumentsList, location: Location):
         super(Call, self).__init__(location)
-        self.function = subroutine
+        self.subroutine = subroutine
         self.arguments = arguments
 
     def __eq__(self, other):
         if isinstance(other, Call):
-            return self.function == other.function and \
+            return self.subroutine == other.subroutine and \
                    self.arguments == other.arguments and \
                    self.location == other.location
         raise NotImplementedError()
 
 
 class CallStatement(Node):
-    def __init__(self, call, location: Location):
+    def __init__(self, call : Call, location: Location):
         super(CallStatement, self).__init__(location)
         self.call = call
 

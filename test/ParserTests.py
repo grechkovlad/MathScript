@@ -1,6 +1,7 @@
 import unittest
 
 from parsing.Parser import *
+from parsing.Tokenizer import Location as TokenLocation
 
 
 class TestBases:
@@ -18,6 +19,23 @@ class TestBases:
             tokenizer = Tokenizer(self._get_input())
             tokenizer.advance()
             self.assertEqual(self._get_expected(), self._get_rule()(tokenizer))
+
+    class FailedParsingTestBase(unittest.TestCase):
+        def _get_input(self):
+            raise NotImplementedError()
+
+        def _get_rule(self):
+            raise NotImplementedError()
+
+        def _get_expected_exception(self):
+            raise NotImplementedError()
+
+        def test_parsing(self):
+            tokenizer = Tokenizer(self._get_input())
+            tokenizer.advance()
+            with self.assertRaises(ParserException) as cm:
+                self._get_rule()(tokenizer)
+            self.assertEqual(self._get_expected_exception(), cm.exception)
 
 
 class SimplestExpressionTest(TestBases.SuccessfulParsingTestBase):
@@ -450,8 +468,8 @@ class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
 
     def _get_expected(self):
         input_var_decl = VariableDeclaration(Identifier("inputVariable", Location(2, 5, 2, 17)),
-                                    Integer(0, Location(2, 21, 2, 21)),
-                                    Location(2, 1, 2, 22))
+                                             Integer(0, Location(2, 21, 2, 21)),
+                                             Location(2, 1, 2, 22))
 
         get_three_decl = SubroutineDecl(SubroutineKind.FUNCTION,
                                         Identifier("getThree", Location(4, 10, 4, 17)),
@@ -548,3 +566,80 @@ class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
                                    fact_body,
                                    Location(12, 1, 21, 1))
         return Script([input_var_decl, get_three_decl, init_n_six_decl, fact_decl, init_n_six_call, ret])
+
+
+class AssignErrorTest(TestBases.FailedParsingTestBase):
+    def _get_input(self):
+        return "x == 2;"
+
+    def _get_rule(self):
+        return parse_assign
+
+    def _get_expected_exception(self):
+        return ParserException(Token("==", "==", TokenLocation(1, 3, 4)), ["="])
+
+
+class VariableDeclarationErrorTest(TestBases.FailedParsingTestBase):
+    def _get_input(self):
+        return "var x;"
+
+    def _get_rule(self):
+        return parse_variable_declaration
+
+    def _get_expected_exception(self):
+        return ParserException(Token(";", ";", TokenLocation(1, 6, 6)), ["="])
+
+
+class MissingBlockErrorTest(TestBases.FailedParsingTestBase):
+    def _get_input(self):
+        return "if 1>0 x = 1;"
+
+    def _get_rule(self):
+        return parse_if
+
+    def _get_expected_exception(self):
+        return ParserException(Token("IDENT", "x", TokenLocation(1, 8, 8)), ["{"])
+
+
+class AccidentalAssignErrorTest(TestBases.FailedParsingTestBase):
+    def _get_input(self):
+        return "if (x=0) {return 1;}"
+
+    def _get_rule(self):
+        return parse_if
+
+    def _get_expected_exception(self):
+        return ParserException(Token("=", "=", TokenLocation(1, 6, 6)), [")"])
+
+
+class MissingSemicolonErrorTest(TestBases.FailedParsingTestBase):
+    def _get_input(self):
+        return "return 1"
+
+    def _get_rule(self):
+        return parse_return
+
+    def _get_expected_exception(self):
+        return ParserException(Token("EOF", "\0", TokenLocation(1, 9, 9)), [";"])
+
+
+class IllegalInnerFunction(TestBases.FailedParsingTestBase):
+    def _get_input(self):
+        return "function f() {function g() {}}";
+
+    def _get_rule(self):
+        return parse_subroutine
+
+    def _get_expected_exception(self):
+        return ParserException(Token("function", "function", TokenLocation(1, 15, 22)), ["return", "if", "IDENT"])
+
+
+class MissingRightOperandTest(TestBases.FailedParsingTestBase):
+    def _get_input(self):
+        return "(x>=)"
+
+    def _get_rule(self):
+        return parse_expr
+
+    def _get_expected_exception(self):
+        return ParserException(Token(")", ")", TokenLocation(1, 5, 5)), ["(", "IDENT", "INT"])

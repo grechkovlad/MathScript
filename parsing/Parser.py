@@ -12,6 +12,10 @@ class ParserException(Exception):
         self.bad_token = bad_token
         self.expected_types = expected_types
 
+    def __eq__(self, other):
+        if isinstance(other, ParserException):
+            return self.bad_token == other.bad_token and set(self.expected_types) == set(other.expected_types)
+
 
 def _eat_token(tokenizer, token_type):
     token = tokenizer.current()

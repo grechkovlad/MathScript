@@ -565,7 +565,8 @@ class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
                                                   Location(12, 14, 12, 16)),
                                    fact_body,
                                    Location(12, 1, 21, 1))
-        return Script([input_var_decl, get_three_decl, init_n_six_decl, fact_decl, init_n_six_call, ret])
+        return Script([input_var_decl, get_three_decl, init_n_six_decl, fact_decl, init_n_six_call, ret],
+                      Location(25, 28, 25, 28))
 
 
 class AssignErrorTest(TestBases.FailedParsingTestBase):

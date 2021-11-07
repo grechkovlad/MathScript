@@ -28,6 +28,10 @@ class Type(Enum):
     VOID = "void"
 
 
+def _end_location(location: Location):
+    return Location(location.line_end, location.column_end, location.line_end, location.column_end)
+
+
 class CompilationException(Exception):
     def __init__(self, message: str, location: Location):
         super(CompilationException, self).__init__(message)
@@ -39,11 +43,19 @@ class DuplicateDeclaration(CompilationException):
         super(DuplicateDeclaration, self).__init__("'%s' is already defined in this scope" % name, location)
         self.name = name
 
+    def __eq__(self, other):
+        if isinstance(other, DuplicateDeclaration):
+            return self.name == other.name and self.location == other.location
+
 
 class DeclarationNotFound(CompilationException):
     def __init__(self, name: str, location: Location):
         super(DeclarationNotFound, self).__init__("declaration of '%s' not found" % name, location)
         self.name = name
+
+    def __eq__(self, other):
+        if isinstance(other, DeclarationNotFound):
+            return self.name == other.name and self.location == other.location
 
 
 class TypeMismatch(CompilationException):
@@ -51,6 +63,10 @@ class TypeMismatch(CompilationException):
         super(TypeMismatch, self).__init__("Type mismatch: expected '%s', but got '%s'" % (expected, actual), location)
         self.expected = expected
         self.actual = actual
+
+    def __eq__(self, other):
+        if isinstance(other, TypeMismatch):
+            return self.expected == other.expected and self.actual == other.actual and self.location == other.location
 
 
 class ArgumentsNumberMismatch(CompilationException):
@@ -60,25 +76,45 @@ class ArgumentsNumberMismatch(CompilationException):
         self.expected = expected
         self.actual = actual
 
+    def __eq__(self, other):
+        if isinstance(other, ArgumentsNumberMismatch):
+            return self.expected == other.expected and self.actual == other.actual and self.location == other.location
+
 
 class IllegalEmptyReturn(CompilationException):
     def __init__(self, location: Location):
         super(IllegalEmptyReturn, self).__init__("Empty return outside procedure context", location)
+
+    def __eq__(self, other):
+        if isinstance(other, IllegalEmptyReturn):
+            return self.location == other.location
 
 
 class IllegalValueReturn(CompilationException):
     def __init__(self, location: Location):
         super(IllegalValueReturn, self).__init__("Value return in procedure context", location)
 
+    def __eq__(self, other):
+        if isinstance(other, IllegalValueReturn):
+            return self.location == other.location
+
 
 class MissingReturnStatement(CompilationException):
     def __init__(self, location: Location):
         super(MissingReturnStatement, self).__init__("Missing return statement", location)
 
+    def __eq__(self, other):
+        if isinstance(other, MissingReturnStatement):
+            return self.location == other.location
+
 
 class ResultOfFunctionCallIgnored(CompilationException):
     def __init__(self, location: Location):
         super(ResultOfFunctionCallIgnored, self).__init__("Result of function call ignored", location)
+
+    def __eq__(self, other):
+        if isinstance(other, ResultOfFunctionCallIgnored):
+            return self.location == other.location
 
 
 def compile_parameters(param_list: ParametersList, script_context: ScriptContext,
@@ -116,7 +152,7 @@ def compile_subroutine_declaration(subroutine: SubroutineDecl, script_context: S
     for statement in subroutine.body.statements:
         body.append(compile_statement(statement, script_context, subroutine_context))
     if subroutine.kind == SubroutineKind.FUNCTION and not _always_returns(body):
-        raise MissingReturnStatement(subroutine.body.location)
+        raise MissingReturnStatement(_end_location(subroutine.body.location))
     subroutine_decl.body = body
     return subroutine_decl
 
@@ -239,11 +275,11 @@ def compile_if(if_statement: IfStatement, script_context: ScriptContext, subrout
 def compile_return(return_statement: ReturnStatement, script_context: ScriptContext,
                    subroutine_context: SubroutineContext):
     if return_statement.return_value is None:
-        if subroutine_context is not None and subroutine_context.subroutine_kind != SubroutineKind.PROCEDURE:
+        if subroutine_context is None or subroutine_context.subroutine_kind != SubroutineKind.PROCEDURE:
             raise IllegalEmptyReturn(return_statement.location)
         return ReturnStatementIR(return_value=None)
     if subroutine_context is not None and subroutine_context.subroutine_kind == SubroutineKind.PROCEDURE:
-        raise IllegalValueReturn(return_statement.location)
+        raise IllegalValueReturn(return_statement.return_value.location)
     return_value, return_value_type = compile_expr(return_statement.return_value, script_context, subroutine_context)
     if return_value_type != Type.INT:
         raise TypeMismatch(Type.INT, return_value_type, return_statement.return_value.location)
@@ -305,4 +341,6 @@ def compile_script(script: Script):
             subroutines.append(compile_subroutine_declaration(script_elem, script_context))
         else:
             statements.append(compile_statement(script_elem, script_context))
+    if not _always_returns(statements):
+        raise MissingReturnStatement(_end_location(script.end_location))
     return ScriptIR(subroutines, statements)

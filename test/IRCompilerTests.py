@@ -4,6 +4,12 @@ from compilation.IRCompiler import *
 from parsing.Parser import *
 
 
+class PassContextMode(Enum):
+    PASS_NO_CONTEXT = 0
+    PASS_SCRIPT_CONTEXT = 1
+    PASS_SCRIPT_AND_SUBROUTINE_CONTEXTS = 2
+
+
 class TestBases:
     class SuccessfulCompilationTestBase(unittest.TestCase):
         def _get_input(self):
@@ -18,8 +24,8 @@ class TestBases:
         def _get_expected(self):
             raise NotImplementedError()
 
-        def _pass_subroutine_context(self):
-            return True
+        def _get_pass_context_mode(self):
+            return PassContextMode.PASS_SCRIPT_AND_SUBROUTINE_CONTEXTS
 
         def test_compilation(self):
             tokenizer = Tokenizer(self._get_input()[0])
@@ -30,17 +36,51 @@ class TestBases:
             expected_node = self._get_expected()[0]
             expected_script_context = self._get_expected()[1]
             expected_subroutine_context = self._get_expected()[2]
-            if self._get_compilation_rule() == compile_script:
-                actual_node = self._get_compilation_rule()(input_ast_node)
-            else:
-                if self._pass_subroutine_context():
+            match self._get_pass_context_mode():
+                case PassContextMode.PASS_SCRIPT_AND_SUBROUTINE_CONTEXTS:
                     actual_node = self._get_compilation_rule()(input_ast_node, input_script_context,
                                                                input_subroutine_context)
-                else:
+                case PassContextMode.PASS_SCRIPT_CONTEXT:
                     actual_node = self._get_compilation_rule()(input_ast_node, input_script_context)
+                case PassContextMode.PASS_NO_CONTEXT:
+                    actual_node = self._get_compilation_rule()(input_ast_node)
             self.assertEqual(expected_node, actual_node)
             self.assertEqual(expected_script_context, input_script_context)
             self.assertEqual(expected_subroutine_context, input_subroutine_context)
+
+    class FailedCompilationTest(unittest.TestCase):
+        def _get_input(self):
+            raise NotImplementedError()
+
+        def _get_compilation_rule(self):
+            raise NotImplementedError()
+
+        def _get_parsing_rule(self):
+            raise NotImplementedError()
+
+        def _get_pass_context_mode(self):
+            return PassContextMode.PASS_SCRIPT_AND_SUBROUTINE_CONTEXTS
+
+        def _get_expected_exception(self):
+            raise NotImplementedError()
+
+        def test_compilation(self):
+            tokenizer = Tokenizer(self._get_input()[0])
+            tokenizer.advance()
+            input_ast_node = self._get_parsing_rule()(tokenizer)
+            input_script_context = self._get_input()[1]
+            input_subroutine_context = self._get_input()[2]
+            with self.assertRaises(CompilationException) as cm:
+                match self._get_pass_context_mode():
+                    case PassContextMode.PASS_SCRIPT_AND_SUBROUTINE_CONTEXTS:
+                        self._get_compilation_rule()(input_ast_node,
+                                                     input_script_context,
+                                                     input_subroutine_context)
+                    case PassContextMode.PASS_SCRIPT_CONTEXT:
+                        self._get_compilation_rule()(input_ast_node, input_script_context)
+                    case PassContextMode.PASS_NO_CONTEXT:
+                        self._get_compilation_rule()(input_ast_node)
+            self.assertEqual(self._get_expected_exception(), cm.exception)
 
 
 class SimplestGlobalVariableDeclarationTest(TestBases.SuccessfulCompilationTestBase):
@@ -188,8 +228,8 @@ class SimpleFunctionTest(TestBases.SuccessfulCompilationTestBase):
     def _get_compilation_rule(self):
         return compile_subroutine_declaration
 
-    def _pass_subroutine_context(self):
-        return False
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_SCRIPT_CONTEXT
 
     def _get_expected(self):
         x_param = ParameterDeclarationIR(0)
@@ -306,6 +346,9 @@ class FullScriptTest(TestBases.SuccessfulCompilationTestBase):
     def _get_compilation_rule(self):
         return compile_script
 
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_NO_CONTEXT
+
     def _get_expected(self):
         input_var_decl = GlobalVariableDeclarationIR(0, IntegerIR(0))
 
@@ -359,3 +402,278 @@ class FullScriptTest(TestBases.SuccessfulCompilationTestBase):
                           [input_var_decl, init_n_six_call, script_return])
 
         return script, None, None
+
+
+class TestDuplicateDeclarationErrorOne(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        x_decl = GlobalVariableDeclarationIR(0, IntegerIR(42))
+        script_context = ScriptContext()
+        script_context.variables["x"] = x_decl
+        return "var x = 2;", script_context, None
+
+    def _get_compilation_rule(self):
+        return compile_statement
+
+    def _get_parsing_rule(self):
+        return parse_statement
+
+    def _get_expected_exception(self):
+        return DuplicateDeclaration("x", Location(1, 5, 1, 5))
+
+
+class TestDuplicateDeclarationErrorTwo(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        x_decl = GlobalVariableDeclarationIR(0, IntegerIR(42))
+        script_context = ScriptContext()
+        script_context.variables["x"] = x_decl
+        return "procedure p(x){}", script_context, None
+
+    def _get_parsing_rule(self):
+        return parse_subroutine
+
+    def _get_compilation_rule(self):
+        return compile_subroutine_declaration
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_SCRIPT_CONTEXT
+
+    def _get_expected_exception(self):
+        return DuplicateDeclaration("x", Location(1, 13, 1, 13))
+
+
+class TestDuplicateDeclarationErrorThree(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "procedure p() {var x = 1; var x = 2;}", ScriptContext(), None
+
+    def _get_parsing_rule(self):
+        return parse_subroutine
+
+    def _get_compilation_rule(self):
+        return compile_subroutine_declaration
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_SCRIPT_CONTEXT
+
+    def _get_expected_exception(self):
+        return DuplicateDeclaration("x", Location(1, 31, 1, 31))
+
+
+class TestVariableDeclarationNotFoundError(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "x = 42;", ScriptContext(), None
+
+    def _get_parsing_rule(self):
+        return parse_statement
+
+    def _get_compilation_rule(self):
+        return compile_statement
+
+    def _get_expected_exception(self):
+        return DeclarationNotFound("x", Location(1, 1, 1, 1))
+
+
+class TestSubroutineDeclarationNotFoundError(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "p(x);", ScriptContext(), None
+
+    def _get_parsing_rule(self):
+        return parse_statement
+
+    def _get_compilation_rule(self):
+        return compile_statement
+
+    def _get_expected_exception(self):
+        return DeclarationNotFound("p", Location(1, 1, 1, 1))
+
+
+class TestTypeMismatchErrorOne(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        x_decl = GlobalVariableDeclarationIR(0, IntegerIR(42))
+        script_context = ScriptContext()
+        script_context.variables["x"] = x_decl
+
+        return "x = 1 < 0;", script_context, None
+
+    def _get_parsing_rule(self):
+        return parse_statement
+
+    def _get_compilation_rule(self):
+        return compile_statement
+
+    def _get_expected_exception(self):
+        return TypeMismatch(Type.INT, Type.BOOL, Location(1, 5, 1, 9))
+
+
+class TestTypeMismatchErrorTwo(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        x_decl = GlobalVariableDeclarationIR(0, IntegerIR(42))
+        p_decl = SubroutineDeclarationIR(SubroutineKind.PROCEDURE, [], [])
+        script_context = ScriptContext()
+        script_context.variables["x"] = x_decl
+        script_context.subroutines["p"] = p_decl
+
+        return "x = p();", script_context, None
+
+    def _get_parsing_rule(self):
+        return parse_statement
+
+    def _get_compilation_rule(self):
+        return compile_statement
+
+    def _get_expected_exception(self):
+        return TypeMismatch(Type.INT, Type.VOID, Location(1, 5, 1, 7))
+
+
+class TestTypeMismatchErrorThree(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        x_decl = GlobalVariableDeclarationIR(0, IntegerIR(42))
+        script_context = ScriptContext()
+        script_context.variables["x"] = x_decl
+
+        return "if x {}", script_context, None
+
+    def _get_parsing_rule(self):
+        return parse_statement
+
+    def _get_compilation_rule(self):
+        return compile_statement
+
+    def _get_expected_exception(self):
+        return TypeMismatch(Type.BOOL, Type.INT, Location(1, 4, 1, 4))
+
+
+class TestTypeMismatchErrorFour(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        x_decl = GlobalVariableDeclarationIR(0, IntegerIR(42))
+        script_context = ScriptContext()
+        script_context.variables["x"] = x_decl
+
+        return "if (!x) {}", script_context, None
+
+    def _get_parsing_rule(self):
+        return parse_statement
+
+    def _get_compilation_rule(self):
+        return compile_statement
+
+    def _get_expected_exception(self):
+        return TypeMismatch(Type.BOOL, Type.INT, Location(1, 6, 1, 6))
+
+
+class TestArgumentsNumberismatchError(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "procedure p(x) {} p(1, 2); return 0;", None, None
+
+    def _get_parsing_rule(self):
+        return parse_script
+
+    def _get_compilation_rule(self):
+        return compile_script
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_NO_CONTEXT
+
+    def _get_expected_exception(self):
+        return ArgumentsNumberMismatch(1, 2, Location(1, 20, 1, 25))
+
+
+class TestIllegalEmptyReturnErrorOne(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "function f() {return;}", ScriptContext(), None
+
+    def _get_parsing_rule(self):
+        return parse_subroutine
+
+    def _get_compilation_rule(self):
+        return compile_subroutine_declaration
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_SCRIPT_CONTEXT
+
+    def _get_expected_exception(self):
+        return IllegalEmptyReturn(Location(1, 15, 1, 21))
+
+
+class TestIllegalEmptyReturnErrorTwo(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "return;", None, None
+
+    def _get_parsing_rule(self):
+        return parse_script
+
+    def _get_compilation_rule(self):
+        return compile_script
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_NO_CONTEXT
+
+    def _get_expected_exception(self):
+        return IllegalEmptyReturn(Location(1, 1, 1, 7))
+
+
+class TestIllegalValueReturnError(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "procedure p() {return 1;} return 0;", None, None
+
+    def _get_parsing_rule(self):
+        return parse_script
+
+    def _get_compilation_rule(self):
+        return compile_script
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_NO_CONTEXT
+
+    def _get_expected_exception(self):
+        return IllegalValueReturn(Location(1, 23, 1, 23))
+
+
+class TestMissingReturnStatementErrorOne(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "", None, None
+
+    def _get_parsing_rule(self):
+        return parse_script
+
+    def _get_compilation_rule(self):
+        return compile_script
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_NO_CONTEXT
+
+    def _get_expected_exception(self):
+        return MissingReturnStatement(Location(1, 1, 1, 1))
+
+
+class TestMissingReturnStatementErrorTwo(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "function f() { if 1 > 0 {return 2;}} return 0;", None, None
+
+    def _get_parsing_rule(self):
+        return parse_script
+
+    def _get_compilation_rule(self):
+        return compile_script
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_NO_CONTEXT
+
+    def _get_expected_exception(self):
+        return MissingReturnStatement(Location(1, 36, 1, 36))
+
+
+class TestResultOfFunctionIgnored(TestBases.FailedCompilationTest):
+    def _get_input(self):
+        return "function f() {return 0;} f(0); return 0;", None, None
+
+    def _get_parsing_rule(self):
+        return parse_script
+
+    def _get_compilation_rule(self):
+        return compile_script
+
+    def _get_pass_context_mode(self):
+        return PassContextMode.PASS_NO_CONTEXT
+
+    def _get_expected_exception(self):
+        return ResultOfFunctionCallIgnored(Location(1, 26, 1, 30))

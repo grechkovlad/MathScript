@@ -297,4 +297,5 @@ def parse_script(tokenizer: Tokenizer):
             body.append(parse_statement(tokenizer))
             continue
         raise ParserException(tokenizer.current(), ["function", "procedure", "return", "IDENT", "if", "var"])
-    return Script(body)
+    eof_token = tokenizer.current()
+    return Script(body, _from_token_location(eof_token))

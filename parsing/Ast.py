@@ -78,12 +78,13 @@ class Block(Node):
 
 
 class Script:
-    def __init__(self, statements):
+    def __init__(self, statements, end_location: Location):
         self.body = statements
+        self.end_location = end_location
 
     def __eq__(self, other):
         if isinstance(other, Script):
-            return self.body == other.body
+            return self.body == other.body and self.end_location == other.end_location
         raise NotImplementedError()
 
 
@@ -160,7 +161,7 @@ class Call(Node):
 
 
 class CallStatement(Node):
-    def __init__(self, call : Call, location: Location):
+    def __init__(self, call: Call, location: Location):
         super(CallStatement, self).__init__(location)
         self.call = call
 

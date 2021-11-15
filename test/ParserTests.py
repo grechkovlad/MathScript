@@ -482,7 +482,7 @@ class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
                                               Location(4, 21, 7, 1)),
                                         Location(4, 1, 7, 1))
 
-        init_n_six_local_var_init_expr = BinaryOperation(BinaryOperatorKind.MINUS,
+        init_n_six_local_var_init_expr = BinaryOperation(BinaryOperatorKind.PLUS,
                                                          BinaryOperation(BinaryOperatorKind.MUL,
                                                                          Call(Identifier("getThree",
                                                                                          Location(9, 20, 9, 27)),
@@ -502,14 +502,14 @@ class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
                                            Location(10, 5, 10, 29))
 
         init_n_six_decl = SubroutineDecl(SubroutineKind.PROCEDURE,
-                                         Identifier("initNSix", Location(8, 11, 8, 18)),
-                                         ParametersList([], Location(8, 19, 8, 20)),
+                                         Identifier("initNSeven", Location(8, 11, 8, 20)),
+                                         ParametersList([], Location(8, 21, 8, 22)),
                                          Block([init_n_six_local_var_decl, input_var_assign],
-                                               Location(8, 22, 11, 1)),
+                                               Location(8, 24, 11, 1)),
                                          Location(8, 1, 11, 1))
 
-        init_n_six_call = CallStatement(Call(Identifier("initNSix", Location(24, 1, 24, 8)),
-                                             ArgumentsList([], Location(24, 9, 24, 10)),
+        init_n_six_call = CallStatement(Call(Identifier("initNSeven", Location(24, 1, 24, 10)),
+                                             ArgumentsList([], Location(24, 11, 24, 12)),
                                              Location(24, 1, 24, 10)),
                                         Location(24, 1, 24, 11))
         ret = ReturnStatement(Call(Identifier("fact", Location(25, 8, 25, 11)),
@@ -626,7 +626,7 @@ class MissingSemicolonErrorTest(TestBases.FailedParsingTestBase):
 
 class IllegalInnerFunction(TestBases.FailedParsingTestBase):
     def _get_input(self):
-        return "function f() {function g() {}}";
+        return "function f() {function g() {}}"
 
     def _get_rule(self):
         return parse_subroutine

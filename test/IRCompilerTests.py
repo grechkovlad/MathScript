@@ -238,7 +238,9 @@ class SimpleFunctionTest(TestBases.SuccessfulCompilationTestBase):
                                                   [x_param, y_param],
                                                   [ReturnStatementIR(BinaryOperationIR(VariableReferenceIR(x_param),
                                                                                        VariableReferenceIR(y_param),
-                                                                                       BinaryOperatorKind.PLUS))])
+                                                                                       BinaryOperatorKind.PLUS))],
+                                                  0,
+                                                  0)
         script_context = ScriptContext()
         script_context.subroutines["sum"] = subroutine_decl
         return subroutine_decl, script_context, None
@@ -269,7 +271,9 @@ class SimpleFunctionCallTest(TestBases.SuccessfulCompilationTestBase):
         script_context.subroutines["f"] = SubroutineDeclarationIR(SubroutineKind.FUNCTION,
                                                                   [ParameterDeclarationIR(0),
                                                                    ParameterDeclarationIR(1)],
-                                                                  [ReturnStatementIR(IntegerIR(42))])
+                                                                  [ReturnStatementIR(IntegerIR(42))],
+                                                                  0,
+                                                                  0)
         return "f(1, x)", script_context, None
 
     def _get_parsing_rule(self):
@@ -284,7 +288,9 @@ class SimpleFunctionCallTest(TestBases.SuccessfulCompilationTestBase):
         script_context.variables["x"] = x_var
         f_decl = SubroutineDeclarationIR(SubroutineKind.FUNCTION,
                                          [ParameterDeclarationIR(0), ParameterDeclarationIR(1)],
-                                         [ReturnStatementIR(IntegerIR(42))])
+                                         [ReturnStatementIR(IntegerIR(42))],
+                                         0,
+                                         0)
         script_context.subroutines["f"] = f_decl
         return (CallIR(SubroutineReferenceIR(f_decl), [IntegerIR(1), VariableReferenceIR(x_var)]),
                 Type.INT), script_context, None
@@ -295,7 +301,9 @@ class SimpleProcedureCallStatementTest(TestBases.SuccessfulCompilationTestBase):
         script_context = ScriptContext()
         script_context.subroutines["proc"] = SubroutineDeclarationIR(SubroutineKind.PROCEDURE,
                                                                      [ParameterDeclarationIR(0)],
-                                                                     [])
+                                                                     [],
+                                                                     0,
+                                                                     0)
         return "proc(1);", script_context, None
 
     def _get_parsing_rule(self):
@@ -308,7 +316,9 @@ class SimpleProcedureCallStatementTest(TestBases.SuccessfulCompilationTestBase):
         script_context = ScriptContext()
         procedure_decl = SubroutineDeclarationIR(SubroutineKind.PROCEDURE,
                                                  [ParameterDeclarationIR(0)],
-                                                 [])
+                                                 [],
+                                                 0,
+                                                 0)
         script_context.subroutines["proc"] = procedure_decl
         call_statement = CallStatementIR(CallIR(SubroutineReferenceIR(procedure_decl), [IntegerIR(1)]))
         return call_statement, script_context, None
@@ -356,7 +366,9 @@ class FullScriptTest(TestBases.SuccessfulCompilationTestBase):
         get_three_decl = SubroutineDeclarationIR(SubroutineKind.FUNCTION,
                                                  [],
                                                  [get_three_local_var_decl,
-                                                  ReturnStatementIR(VariableReferenceIR(get_three_local_var_decl))])
+                                                  ReturnStatementIR(VariableReferenceIR(get_three_local_var_decl))],
+                                                 0,
+                                                 1)
         get_three_ref = SubroutineReferenceIR(get_three_decl)
         init_n_six_local_var_decl = LocalVariableDeclarationIR(0,
                                                                BinaryOperationIR(BinaryOperationIR(CallIR(get_three_ref,
@@ -369,12 +381,16 @@ class FullScriptTest(TestBases.SuccessfulCompilationTestBase):
                                                   [],
                                                   [init_n_six_local_var_decl,
                                                    AssignStatementIR(VariableReferenceIR(input_var_decl),
-                                                                     VariableReferenceIR(init_n_six_local_var_decl))])
+                                                                     VariableReferenceIR(init_n_six_local_var_decl))],
+                                                  1,
+                                                  1)
 
         n_param = ParameterDeclarationIR(0)
         fact_decl = SubroutineDeclarationIR(SubroutineKind.FUNCTION,
                                             [n_param],
-                                            [])
+                                            [],
+                                            2,
+                                            0)
         fact_body = [IfStatementIR(BinaryOperationIR(VariableReferenceIR(n_param),
                                                      IntegerIR(0),
                                                      BinaryOperatorKind.GEQ),
@@ -391,7 +407,7 @@ class FullScriptTest(TestBases.SuccessfulCompilationTestBase):
                                                                                    BinaryOperatorKind.MINUS)]),
                                                                         BinaryOperatorKind.MUL))],
                                    [ReturnStatementIR(UnaryOperationIR(IntegerIR(1), UnaryOperatorKind.MINUS))])]
-        fact_decl.body = fact_body
+        fact_decl.statements = fact_body
 
         init_n_six_call = CallStatementIR(CallIR(SubroutineReferenceIR(init_n_six_decl), []))
 
@@ -399,7 +415,8 @@ class FullScriptTest(TestBases.SuccessfulCompilationTestBase):
             CallIR(SubroutineReferenceIR(fact_decl), [VariableReferenceIR(input_var_decl)]))
 
         script = ScriptIR([get_three_decl, init_n_six_decl, fact_decl],
-                          [input_var_decl, init_n_six_call, script_return])
+                          [input_var_decl, init_n_six_call, script_return],
+                          1)
 
         return script, None, None
 
@@ -507,7 +524,7 @@ class TestTypeMismatchErrorOne(TestBases.FailedCompilationTest):
 class TestTypeMismatchErrorTwo(TestBases.FailedCompilationTest):
     def _get_input(self):
         x_decl = GlobalVariableDeclarationIR(0, IntegerIR(42))
-        p_decl = SubroutineDeclarationIR(SubroutineKind.PROCEDURE, [], [])
+        p_decl = SubroutineDeclarationIR(SubroutineKind.PROCEDURE, [], [], 0, 0)
         script_context = ScriptContext()
         script_context.variables["x"] = x_decl
         script_context.subroutines["p"] = p_decl

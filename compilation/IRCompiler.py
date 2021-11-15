@@ -143,17 +143,21 @@ def _always_returns(statements):
 def compile_subroutine_declaration(subroutine: SubroutineDecl, script_context: ScriptContext):
     if subroutine.name.name in script_context.subroutines:
         raise DuplicateDeclaration(subroutine.name.name, subroutine.name.location)
-    subroutine_decl = SubroutineDeclarationIR(subroutine.kind, [], [])
+    subroutine_decl = SubroutineDeclarationIR(subroutine.kind, [], [], len(script_context.subroutines), 0)
     script_context.subroutines[subroutine.name.name] = subroutine_decl
     subroutine_context = SubroutineContext(subroutine.kind)
     parameters = compile_parameters(subroutine.parameters, script_context, subroutine_context)
     subroutine_decl.parameters = parameters
     body = []
+    local_var_count = 0
     for statement in subroutine.body.statements:
         body.append(compile_statement(statement, script_context, subroutine_context))
+        if isinstance(statement, VariableDeclaration):
+            local_var_count += 1
     if subroutine.kind == SubroutineKind.FUNCTION and not _always_returns(body):
         raise MissingReturnStatement(_end_location(subroutine.body.location))
-    subroutine_decl.body = body
+    subroutine_decl.statements = body
+    subroutine_decl.local_variables_count = local_var_count
     return subroutine_decl
 
 
@@ -336,11 +340,14 @@ def compile_script(script: Script):
     subroutines = []
     statements = []
     script_context = ScriptContext()
+    global_var_count = 0
     for script_elem in script.body:
         if isinstance(script_elem, SubroutineDecl):
             subroutines.append(compile_subroutine_declaration(script_elem, script_context))
         else:
             statements.append(compile_statement(script_elem, script_context))
+            if isinstance(script_elem, VariableDeclaration):
+                global_var_count += 1
     if not _always_returns(statements):
         raise MissingReturnStatement(_end_location(script.end_location))
-    return ScriptIR(subroutines, statements)
+    return ScriptIR(subroutines, statements, global_var_count)

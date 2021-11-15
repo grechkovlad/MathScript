@@ -63,8 +63,16 @@ class ReturnStatementIR:
         return _equals(self, other)
 
 
+class VariableReferenceIR:
+    def __init__(self, declaration):
+        self.declaration = declaration
+
+    def __eq__(self, other):
+        return _equals(self, other)
+
+
 class AssignStatementIR:
-    def __init__(self, var, value):
+    def __init__(self, var: VariableReferenceIR, value):
         self.var = var
         self.value = value
 
@@ -81,19 +89,16 @@ class GlobalVariableDeclarationIR:
         return _equals(self, other)
 
 
-class VariableReferenceIR:
-    def __init__(self, declaration):
-        self.declaration = declaration
-
-    def __eq__(self, other):
-        return _equals(self, other)
-
-
 class SubroutineDeclarationIR:
-    def __init__(self, subroutine_kind: SubroutineKind, parameters, body):
+    def __init__(self, subroutine_kind: SubroutineKind,
+                 parameters: list, statements: list,
+                 index: int,
+                 local_variables_count: int):
         self.subroutine_kind = subroutine_kind
         self.parameters = parameters
-        self.body = body
+        self.statements = statements
+        self.index = index
+        self.local_variables_count = local_variables_count
 
     def __eq__(self, other):
         return _equals(self, other)
@@ -125,9 +130,10 @@ class CallStatementIR:
 
 
 class ScriptIR:
-    def __init__(self, subroutines, statements):
+    def __init__(self, subroutines: list, statements: list, global_variables_count: int):
         self.subroutines = subroutines
         self.statements = statements
+        self.global_variables_count = global_variables_count
 
     def __eq__(self, other):
         return _equals(self, other)
@@ -194,8 +200,10 @@ def _equality_traverse(node, other, visited):
     if isinstance(node, VariableReferenceIR):
         return _equality_traverse(node.declaration, other.declaration, visited)
     if isinstance(node, SubroutineDeclarationIR):
-        return node.subroutine_kind == other.subroutine_kind and \
-               _nodes_lists_equals(node.body, other.body, visited) and \
+        return node.index == other.index and \
+               node.local_variables_count == other.local_variables_count and \
+               node.subroutine_kind == other.subroutine_kind and \
+               _nodes_lists_equals(node.statements, other.statements, visited) and \
                _nodes_lists_equals(node.parameters, other.parameters, visited)
     if isinstance(node, SubroutineReferenceIR):
         return _equality_traverse(node.declaration, other.declaration, visited)
@@ -205,7 +213,8 @@ def _equality_traverse(node, other, visited):
     if isinstance(node, CallStatementIR):
         return _equality_traverse(node.call, other.call, visited)
     if isinstance(node, ScriptIR):
-        return _nodes_lists_equals(node.subroutines, other.subroutines, visited) and \
+        return node.global_variables_count == other.global_variables_count and \
+               _nodes_lists_equals(node.subroutines, other.subroutines, visited) and \
                _nodes_lists_equals(node.statements, other.statements, visited)
     raise ValueError(node)
 

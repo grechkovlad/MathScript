@@ -1,0 +1,24 @@
+
+var a = 2;
+var b = 7;
+var c = 4;
+
+function sqr(x) {
+    return x * x;
+}
+
+function discriminant(aParam, bParam, cParam) {
+    return sqr(bParam) - 4 * aParam * cParam;
+}
+
+var d = discriminant(a, b, c);
+
+if d < 0 {
+    return 0;
+}
+
+if (d == 0) {
+    return 1;
+}
+
+return 2;

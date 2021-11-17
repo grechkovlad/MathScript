@@ -28,6 +28,15 @@ class TestBases:
             self.assertEqual(self._get_expected(), res)
 
 
+class SimplestTest(TestBases.SuccessfulCompilationTestBase):
+    def _get_input(self):
+        with open('resources/simplest.mas') as file:
+            return file.read()
+
+    def _get_expected(self):
+        return 0
+
+
 class FactSevenTest(TestBases.SuccessfulCompilationTestBase):
     def _get_input(self):
         with open('resources/fact7.mas') as file:
@@ -35,3 +44,30 @@ class FactSevenTest(TestBases.SuccessfulCompilationTestBase):
 
     def _get_expected(self):
         return 5040
+
+
+class NumberOfRootsTest(TestBases.SuccessfulCompilationTestBase):
+    def _get_input(self):
+        with open('resources/number_of_roots.mas') as file:
+            return file.read()
+
+    def _get_expected(self):
+        return 2
+
+
+class SumFrom1ToNTest(TestBases.SuccessfulCompilationTestBase):
+    def _get_input(self):
+        with open('resources/sum_from_1_to_n.mas') as file:
+            return file.read()
+
+    def _get_expected(self):
+        return 55
+
+
+class CountIntersectionsTest(TestBases.SuccessfulCompilationTestBase):
+    def _get_input(self):
+        with open('resources/count_intersections.mas') as file:
+            return file.read()
+
+    def _get_expected(self):
+        return 3

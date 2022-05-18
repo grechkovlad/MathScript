@@ -1,7 +1,7 @@
 import io
 import unittest
 
-from compilation.WASMCompiler import compile_script as compile_to_wasm, emit_module_code
+from backend.wasm.WASMCompiler import compile_script as compile_to_wasm, emit_module_code
 from compilation.IRCompiler import compile_script as compile_to_ir
 from parsing.Tokenizer import Tokenizer
 from parsing.Parser import parse_script

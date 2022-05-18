@@ -1,6 +1,6 @@
-import compilation.WasmNodes
+import backend.wasm.WasmNodes
 from compilation.IRNodes import *
-from compilation.WasmNodes import *
+from backend.wasm.WasmNodes import *
 
 
 def compile_global_variables_declaration(global_variables_count: int):
@@ -114,8 +114,8 @@ def compile_unary_operation(expr: UnaryOperationIR):
 
 
 def compile_call(expr: CallIR):
-    return compilation.WasmNodes.Call(_get_func_name(expr.subroutine.declaration.index),
-                                      [compile_expr(arg) for arg in expr.args])
+    return backend.wasm.WasmNodes.Call(_get_func_name(expr.subroutine.declaration.index),
+                                       [compile_expr(arg) for arg in expr.args])
 
 
 def compile_variable_read(variable_decl):

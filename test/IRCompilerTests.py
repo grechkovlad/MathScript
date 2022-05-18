@@ -370,18 +370,18 @@ class FullScriptTest(TestBases.SuccessfulCompilationTestBase):
                                                  0,
                                                  1)
         get_three_ref = SubroutineReferenceIR(get_three_decl)
-        init_n_six_local_var_decl = LocalVariableDeclarationIR(0,
+        init_n_seven_local_var_decl = LocalVariableDeclarationIR(0,
                                                                BinaryOperationIR(BinaryOperationIR(CallIR(get_three_ref,
                                                                                                           []),
                                                                                                    IntegerIR(2),
                                                                                                    BinaryOperatorKind.MUL),
                                                                                  IntegerIR(1),
-                                                                                 BinaryOperatorKind.MINUS))
+                                                                                 BinaryOperatorKind.PLUS))
         init_n_six_decl = SubroutineDeclarationIR(SubroutineKind.PROCEDURE,
                                                   [],
-                                                  [init_n_six_local_var_decl,
+                                                  [init_n_seven_local_var_decl,
                                                    AssignStatementIR(VariableReferenceIR(input_var_decl),
-                                                                     VariableReferenceIR(init_n_six_local_var_decl))],
+                                                                     VariableReferenceIR(init_n_seven_local_var_decl))],
                                                   1,
                                                   1)
 

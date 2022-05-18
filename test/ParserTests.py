@@ -510,8 +510,8 @@ class FullScriptParsingTest(TestBases.SuccessfulParsingTestBase):
 
         init_n_six_call = CallStatement(Call(Identifier("initNSeven", Location(24, 1, 24, 10)),
                                              ArgumentsList([], Location(24, 11, 24, 12)),
-                                             Location(24, 1, 24, 10)),
-                                        Location(24, 1, 24, 11))
+                                             Location(24, 1, 24, 12)),
+                                        Location(24, 1, 24, 13))
         ret = ReturnStatement(Call(Identifier("fact", Location(25, 8, 25, 11)),
                                    ArgumentsList([Identifier("inputVariable", Location(25, 13, 25, 25))],
                                                  Location(25, 12, 25, 26)),
